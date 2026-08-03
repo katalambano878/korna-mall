@@ -18,6 +18,9 @@ interface Order {
   phone?: string;
   shipping_address?: any;
   metadata?: any;
+  payment_plan?: string | null;
+  amount_paid?: number | null;
+  balance_due?: number | null;
   profiles?: {
     full_name: string;
     email: string;

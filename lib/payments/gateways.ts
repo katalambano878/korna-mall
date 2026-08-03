@@ -23,10 +23,11 @@ export function isHubtelConfigured(): boolean {
 }
 
 export function listConfiguredGateways(): GatewayInfo[] {
-  return [
+  const all: GatewayInfo[] = [
     { id: 'moolre', label: 'Moolre (Mobile Money / Card)', configured: isMoolreConfigured() },
     { id: 'hubtel', label: 'Hubtel (Mobile Money / Card)', configured: isHubtelConfigured() },
-  ].filter((g) => g.configured);
+  ];
+  return all.filter((g) => g.configured);
 }
 
 export function isGatewayConfigured(gateway: string): boolean {
