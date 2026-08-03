@@ -1,6 +1,4 @@
-/** KORNA MALL runs as a pre-order store — all listed products are pre-order unless opted out. */
-
-export const PREORDER_STORE = process.env.NEXT_PUBLIC_PREORDER_STORE !== 'false';
+/** Per-product availability: Available (in Ghana stock) vs Pre-order. */
 
 export const DEFAULT_PREORDER_SHIPPING =
   process.env.NEXT_PUBLIC_PREORDER_SHIPPING_NOTE?.trim() ||
@@ -12,10 +10,9 @@ export type ProductMetadata = {
   [key: string]: unknown;
 } | null | undefined;
 
+/** Explicit admin toggle only — available products are not treated as pre-order. */
 export function isPreorderProduct(metadata?: ProductMetadata): boolean {
-  if (metadata?.is_preorder === false) return false;
-  if (PREORDER_STORE) return true;
-  return Boolean(metadata?.is_preorder || metadata?.preorder_shipping);
+  return metadata?.is_preorder === true;
 }
 
 export function getPreorderShippingNote(metadata?: ProductMetadata): string | null {
@@ -27,18 +24,22 @@ export function getPreorderShippingNote(metadata?: ProductMetadata): string | nu
 
 export function normalizeProductMetadata(
   metadata: ProductMetadata,
-  preorderShippingInput?: string
+  opts: { isPreorder: boolean; preorderShipping?: string }
 ): Record<string, unknown> {
   const base =
     metadata && typeof metadata === 'object' && !Array.isArray(metadata)
       ? { ...metadata }
       : {};
 
-  if (!isPreorderProduct(base) && !PREORDER_STORE) {
-    return base;
+  if (!opts.isPreorder) {
+    return {
+      ...base,
+      is_preorder: false,
+      preorder_shipping: null,
+    };
   }
 
-  const note = (preorderShippingInput ?? String(base.preorder_shipping ?? '')).trim();
+  const note = (opts.preorderShipping ?? String(base.preorder_shipping ?? '')).trim();
   return {
     ...base,
     is_preorder: true,

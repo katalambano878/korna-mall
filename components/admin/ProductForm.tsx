@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_PREORDER_SHIPPING, normalizeProductMetadata } from '@/lib/preorder';
+import { DEFAULT_PREORDER_SHIPPING, isPreorderProduct, normalizeProductMetadata } from '@/lib/preorder';
 
 interface ProductFormProps {
     initialData?: any;
@@ -30,6 +30,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [description, setDescription] = useState(initialData?.description || '');
     const [status, setStatus] = useState(initialData?.status || 'Active');
     const [featured, setFeatured] = useState(initialData?.featured || false);
+    const [isPreorder, setIsPreorder] = useState(() =>
+        initialData ? isPreorderProduct(initialData?.metadata) : false
+    );
     const [preorderShipping, setPreorderShipping] = useState(
         initialData?.metadata?.preorder_shipping || DEFAULT_PREORDER_SHIPPING
     );
@@ -306,7 +309,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                         ...(initialData?.metadata || {}),
                         low_stock_threshold: parseInt(lowStockThreshold) || 5,
                     },
-                    preorderShipping
+                    { isPreorder, preorderShipping }
                 ),
             };
 
@@ -540,20 +543,76 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Pre-order delivery note
+                                <label className="block text-sm font-semibold text-gray-900 mb-3">
+                                    Availability
                                 </label>
-                                <input
-                                    type="text"
-                                    value={preorderShipping}
-                                    onChange={(e) => setPreorderShipping(e.target.value)}
-                                    placeholder={DEFAULT_PREORDER_SHIPPING}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    All products on KORNA MALL are pre-order. Adjust the estimated arrival text if this item differs from the default.
-                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPreorder(false)}
+                                        className={`p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                                            !isPreorder
+                                                ? 'border-brand bg-brand-soft'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-bold text-gray-900">Available</span>
+                                            <span
+                                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                    !isPreorder ? 'border-brand bg-brand' : 'border-gray-300'
+                                                }`}
+                                            >
+                                                {!isPreorder && <i className="ri-check-line text-white text-xs"></i>}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-600">
+                                            In stock for customers in Ghana — ready to sell and ship.
+                                        </p>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPreorder(true)}
+                                        className={`p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                                            isPreorder
+                                                ? 'border-brand-accent bg-orange-50'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-bold text-gray-900">Pre-order</span>
+                                            <span
+                                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                    isPreorder ? 'border-brand-accent bg-brand-accent' : 'border-gray-300'
+                                                }`}
+                                            >
+                                                {isPreorder && <i className="ri-check-line text-white text-xs"></i>}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-600">
+                                            Ships when stock arrives. Customers can pay full or 50% deposit.
+                                        </p>
+                                    </button>
+                                </div>
                             </div>
+
+                            {isPreorder && (
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                        Pre-order delivery note
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={preorderShipping}
+                                        onChange={(e) => setPreorderShipping(e.target.value)}
+                                        placeholder={DEFAULT_PREORDER_SHIPPING}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Shown on the product page (e.g. “Ships in 2–3 weeks”).
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 

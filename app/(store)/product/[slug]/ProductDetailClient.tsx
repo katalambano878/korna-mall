@@ -167,7 +167,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 maxStock: effectiveStock || 50,
                 moq: p.moq || 1,
                 hasVariants,
-                minVariantPrice
+                minVariantPrice,
+                isPreorder: isPreorderProduct(p.metadata),
               };
             }));
           }
@@ -219,7 +220,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       variant: variantLabel,
       slug: product.slug,
       maxStock: activeStock,
-      moq: product.moq || 1
+      moq: product.moq || 1,
+      isPreorder: Boolean(product.isPreorder),
     });
   };
 

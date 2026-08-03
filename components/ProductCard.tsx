@@ -144,7 +144,7 @@ export default function ProductCard({
                 aria-label="Add to cart"
                 onClick={(e) => {
                   e.preventDefault();
-                  addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
+                  addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq, isPreorder });
                 }}
                 className="w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-brand hover:bg-white transition"
               >
@@ -223,7 +223,7 @@ export default function ProductCard({
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
+                  addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq, isPreorder });
                 }}
                 className="w-full bg-brand-accent text-white hover:bg-brand-accentDark py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors"
               >

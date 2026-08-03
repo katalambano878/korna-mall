@@ -5,7 +5,7 @@ import { verifyAccessToken } from '@/lib/db/auth';
 import { isPlainPostgres } from '@/lib/db/mode';
 import { computePaymentPlan, type PaymentPlan } from '@/lib/payments/plans';
 import { isGatewayConfigured, parseGateway } from '@/lib/payments/gateways';
-import { getPreorderShippingNote } from '@/lib/preorder';
+import { getPreorderShippingNote, isPreorderProduct } from '@/lib/preorder';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -55,7 +55,6 @@ export async function POST(req: Request) {
     const region = String(shipping.region || '').trim();
     const deliveryMethod = String(body.deliveryMethod || 'pickup');
     const paymentPlanRaw = String(body.paymentPlan || 'full');
-    const paymentPlan: PaymentPlan = paymentPlanRaw === 'deposit_50' ? 'deposit_50' : 'full';
     const paymentGateway = parseGateway(body.paymentGateway || body.paymentMethod);
     if (!paymentGateway || !isGatewayConfigured(paymentGateway)) {
       return NextResponse.json(
@@ -119,7 +118,9 @@ export async function POST(req: Request) {
       let variantName: string | null = line.variantName ? String(line.variantName) : null;
       let sku: string | null = product.sku || null;
       let stock = Number(product.quantity ?? 0);
+      const productIsPreorder = isPreorderProduct(product.metadata);
       const meta: Record<string, unknown> = {
+        is_preorder: productIsPreorder,
         preorder_shipping: getPreorderShippingNote(product.metadata),
       };
 
@@ -182,6 +183,9 @@ export async function POST(req: Request) {
     const shippingCost = 0;
     const tax = 0;
     const total = Math.round((subtotal + shippingCost + tax) * 100) / 100;
+    const cartHasPreorder = lineRows.some((line) => line.metadata.is_preorder === true);
+    const paymentPlan: PaymentPlan =
+      paymentPlanRaw === 'deposit_50' && cartHasPreorder ? 'deposit_50' : 'full';
     const planBreakdown = computePaymentPlan(total, paymentPlan);
 
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

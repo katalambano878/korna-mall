@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { isPreorderProduct } from '@/lib/preorder';
 
 export default function CheckoutPage() {
   usePageTitle('Checkout');
@@ -21,6 +22,7 @@ export default function CheckoutPage() {
   const [saveAddress, setSaveAddress] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [preorderByProductId, setPreorderByProductId] = useState<Record<string, boolean>>({});
   const { getToken, verifying } = useRecaptcha();
 
   const [shippingData, setShippingData] = useState({
@@ -59,6 +61,9 @@ export default function CheckoutPage() {
   const [paymentGateway, setPaymentGateway] = useState<'moolre' | 'hubtel' | ''>('');
   const [gateways, setGateways] = useState<Array<{ id: 'moolre' | 'hubtel'; label: string; configured: boolean }>>([]);
   const [errors, setErrors] = useState<any>({});
+  const cartHasPreorder = cart.some(
+    (item) => item.isPreorder === true || preorderByProductId[item.id] === true
+  );
 
   // Store WhatsApp number (E.164, no +) that receives the orders
   const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '233543832358';
@@ -129,19 +134,48 @@ export default function CheckoutPage() {
       .catch((err) => console.error('Failed to load payment gateways:', err));
   }, []);
 
+  // Resolve pre-order flags from DB (covers older cart items without isPreorder)
+  useEffect(() => {
+    const ids = [...new Set(cart.map((item) => item.id).filter(Boolean))];
+    if (ids.length === 0) {
+      setPreorderByProductId({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('products').select('id, metadata').in('id', ids);
+      if (cancelled || !data) return;
+      const map: Record<string, boolean> = {};
+      for (const row of data as Array<{ id: string; metadata?: unknown }>) {
+        map[row.id] = isPreorderProduct(row.metadata as any);
+      }
+      setPreorderByProductId(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [cart]);
+
   // Calculate Totals
   const subtotal = cartSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
   const total = subtotal + shippingCost + tax;
+  const effectivePlan = cartHasPreorder ? paymentPlan : 'full';
   const amountDueNow =
-    paymentPlan === 'deposit_50'
+    effectivePlan === 'deposit_50'
       ? Math.round((total / 2) * 100) / 100
       : total;
   const balanceDue =
-    paymentPlan === 'deposit_50'
+    effectivePlan === 'deposit_50'
       ? Math.round((total - amountDueNow) * 100) / 100
       : 0;
+
+  useEffect(() => {
+    if (!cartHasPreorder && paymentPlan === 'deposit_50') {
+      setPaymentPlan('full');
+    }
+  }, [cartHasPreorder, paymentPlan]);
 
   const validateShipping = () => {
     const newErrors: any = {};
@@ -207,7 +241,7 @@ export default function CheckoutPage() {
           })),
           shipping: shippingData,
           deliveryMethod,
-          paymentPlan,
+          paymentPlan: cartHasPreorder ? paymentPlan : 'full',
           paymentGateway,
         }),
       });
@@ -258,7 +292,7 @@ export default function CheckoutPage() {
             metadata: {
               tracking_number: trackingNumber,
               payment_gateway: paymentGateway,
-              payment_plan: order.payment_plan || paymentPlan,
+              payment_plan: order.payment_plan || effectivePlan,
               amount_due_now: order.amount_due_now ?? amountDueNow,
             },
           },
@@ -595,14 +629,16 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Plan</h2>
                   <p className="text-sm text-gray-600 mb-6">
-                    All items are pre-order. Choose to pay in full now, or 50% now and the balance when your order arrives.
+                    {cartHasPreorder
+                      ? 'Your cart includes pre-order items. Pay in full now, or 50% now and the balance when goods arrive.'
+                      : 'Pay the full amount now for in-stock items available in Ghana.'}
                   </p>
-                  <div className="grid md:grid-cols-2 gap-4 mb-8">
+                  <div className={`grid gap-4 mb-8 ${cartHasPreorder ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
                     <button
                       type="button"
                       onClick={() => setPaymentPlan('full')}
                       className={`p-5 rounded-xl border-2 transition-all text-left cursor-pointer ${
-                        paymentPlan === 'full'
+                        effectivePlan === 'full'
                           ? 'border-brand bg-brand-soft'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
@@ -611,39 +647,41 @@ export default function CheckoutPage() {
                         <h3 className="text-lg font-bold text-gray-900">Full Payment</h3>
                         <div
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            paymentPlan === 'full' ? 'border-brand bg-brand' : 'border-gray-300'
+                            effectivePlan === 'full' ? 'border-brand bg-brand' : 'border-gray-300'
                           }`}
                         >
-                          {paymentPlan === 'full' && <i className="ri-check-line text-white text-xs"></i>}
+                          {effectivePlan === 'full' && <i className="ri-check-line text-white text-xs"></i>}
                         </div>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">Pay the full amount now</p>
                       <p className="text-xl font-bold text-brand">GH₵ {total.toFixed(2)}</p>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setPaymentPlan('deposit_50')}
-                      className={`p-5 rounded-xl border-2 transition-all text-left cursor-pointer ${
-                        paymentPlan === 'deposit_50'
-                          ? 'border-brand bg-brand-soft'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-bold text-gray-900">50% Deposit</h3>
-                        <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            paymentPlan === 'deposit_50' ? 'border-brand bg-brand' : 'border-gray-300'
-                          }`}
-                        >
-                          {paymentPlan === 'deposit_50' && <i className="ri-check-line text-white text-xs"></i>}
+                    {cartHasPreorder && (
+                      <button
+                        type="button"
+                        onClick={() => setPaymentPlan('deposit_50')}
+                        className={`p-5 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                          effectivePlan === 'deposit_50'
+                            ? 'border-brand bg-brand-soft'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-bold text-gray-900">50% Deposit</h3>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              effectivePlan === 'deposit_50' ? 'border-brand bg-brand' : 'border-gray-300'
+                            }`}
+                          >
+                            {effectivePlan === 'deposit_50' && <i className="ri-check-line text-white text-xs"></i>}
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">Pay half now, rest when goods arrive</p>
-                      <p className="text-xl font-bold text-brand-accent">GH₵ {amountDueNow.toFixed(2)} now</p>
-                      <p className="text-sm text-gray-500 mt-1">Balance: GH₵ {balanceDue.toFixed(2)}</p>
-                    </button>
+                        <p className="text-sm text-gray-600 mb-2">Pay half now, rest when goods arrive</p>
+                        <p className="text-xl font-bold text-brand-accent">GH₵ {amountDueNow.toFixed(2)} now</p>
+                        <p className="text-sm text-gray-500 mt-1">Balance: GH₵ {balanceDue.toFixed(2)}</p>
+                      </button>
+                    )}
                   </div>
 
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
@@ -722,7 +760,7 @@ export default function CheckoutPage() {
               shipping={shippingCost}
               tax={tax}
               total={total}
-              paymentPlan={currentStep >= 3 ? paymentPlan : undefined}
+              paymentPlan={currentStep >= 3 ? effectivePlan : undefined}
               amountDueNow={currentStep >= 3 ? amountDueNow : undefined}
               balanceDue={currentStep >= 3 ? balanceDue : undefined}
             />

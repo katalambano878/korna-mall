@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { isPreorderProduct } from '@/lib/preorder';
 
 export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -345,8 +346,17 @@ export default function ProductsPage() {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{product.name}</p>
-                          <div className="flex items-center mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-gray-400">ID: {product.id.substring(0, 8)}...</span>
+                            <span
+                              className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                                isPreorderProduct(product.metadata)
+                                  ? 'bg-orange-100 text-brand-accent'
+                                  : 'bg-emerald-50 text-emerald-700'
+                              }`}
+                            >
+                              {isPreorderProduct(product.metadata) ? 'Pre-order' : 'Available'}
+                            </span>
                           </div>
                         </div>
                       </div>

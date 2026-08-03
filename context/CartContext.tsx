@@ -12,6 +12,7 @@ export type CartItem = {
     slug: string;
     maxStock: number;
     moq?: number; // Minimum Order Quantity
+    isPreorder?: boolean;
 };
 
 type CartContextType = {
@@ -91,7 +92,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     existingItem.quantity + newItem.quantity,
                     existingItem.maxStock
                 );
-                newCart[existingItemIndex] = { ...existingItem, quantity: newQuantity };
+                newCart[existingItemIndex] = {
+                    ...existingItem,
+                    quantity: newQuantity,
+                    isPreorder: newItem.isPreorder ?? existingItem.isPreorder,
+                };
                 return newCart;
             } else {
                 return [...prevCart, newItem];
