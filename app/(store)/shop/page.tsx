@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
 import PageHero from '@/components/PageHero';
 import { isPreorderProduct } from '@/lib/preorder';
+import { displayCompareAtPrice } from '@/lib/storefront-pricing';
 
 function ShopContent() {
   usePageTitle('Shop All Products');
@@ -179,11 +180,11 @@ function ShopContent() {
               slug: p.slug,       // Slug for navigation
               name: p.name,
               price: p.price,
-              originalPrice: p.compare_at_price,
+              originalPrice: displayCompareAtPrice(p.compare_at_price, p.price),
               image: p.product_images?.[0]?.url || 'https://via.placeholder.com/800x800?text=No+Image',
               rating: p.rating_avg || 0,
               reviewCount: 0, // Need to implement reviews relation
-              badge: p.compare_at_price > p.price ? 'Sale' : undefined, // Simple badge logic
+              badge: p.featured ? 'Featured' : undefined,
               inStock: effectiveStock > 0,
               maxStock: effectiveStock || 50,
               moq: p.moq || 1,

@@ -11,6 +11,7 @@ import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import { useCMS } from '@/context/CMSContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { isPreorderProduct } from '@/lib/preorder';
+import { displayCompareAtPrice } from '@/lib/storefront-pricing';
 
 const CATEGORY_IMAGES: Record<string, string> = {
   fashion: '/hero-1.png',
@@ -189,7 +190,7 @@ export default function HomePage() {
       slug: product.slug,
       name: product.name,
       price: product.price,
-      originalPrice: product.compare_at_price,
+      originalPrice: displayCompareAtPrice(product.compare_at_price, product.price),
       image: product.product_images?.[0]?.url || 'https://via.placeholder.com/400x500',
       rating: product.rating_avg || 5,
       reviewCount: product.review_count || 0,

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import LazyImage from './LazyImage';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { displayDiscountPercent } from '@/lib/storefront-pricing';
 
 // Map common color names to hex values for swatches
 const COLOR_MAP: Record<string, string> = {
@@ -88,7 +89,7 @@ export default function ProductCard({
   const { addToWishlist } = useWishlist();
   const [activeColor, setActiveColor] = useState<string | null>(null);
   const displayPrice = hasVariants && minVariantPrice ? minVariantPrice : price;
-  const discount = originalPrice ? Math.round((1 - displayPrice / originalPrice) * 100) : 0;
+  const discount = displayDiscountPercent(originalPrice, displayPrice);
   const MAX_SWATCHES = 5;
   const formatPrice = (val: number) => `GH\u20B5${val.toFixed(2)}`;
   const ratingDisplay = Number(rating || 0).toFixed(1);
@@ -105,20 +106,27 @@ export default function ProductCard({
             />
           </Link>
 
-          {/* Pre-order badge */}
-          {isPreorder && (
+          {/* Optional non-sale badge (e.g. Featured) */}
+          {badge && !isPreorder && discount === 0 && (
             <div className="absolute top-3 left-3 z-20">
+              <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
+                {badge}
+              </span>
+            </div>
+          )}
+
+          {isPreorder && (
+            <div className={`absolute top-3 z-20 ${badge && discount === 0 ? 'left-[5.5rem]' : 'left-3'}`}>
               <span className="inline-flex items-center bg-brand-accent text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 Pre-order
               </span>
             </div>
           )}
 
-          {/* Discount badge */}
-          {(discount > 0 || (badge && !isPreorder)) && (
+          {discount > 0 && (
             <div className={`absolute top-3 z-20 ${isPreorder ? 'left-[5.5rem]' : 'left-3'}`}>
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
-                {discount > 0 ? `${discount}% off` : badge}
+                {discount}% off
               </span>
             </div>
           )}
@@ -196,9 +204,9 @@ export default function ProductCard({
           <span className="text-[15px] font-semibold text-brand-accent">
             {hasVariants && minVariantPrice ? `From ${formatPrice(minVariantPrice)}` : formatPrice(price)}
           </span>
-          {originalPrice ? (
+          {discount > 0 && originalPrice != null && (
             <span className="text-[13px] text-stone-400 line-through">{formatPrice(originalPrice)}</span>
-          ) : null}
+          )}
         </div>
       </div>
     );
@@ -292,7 +300,7 @@ export default function ProductCard({
           ) : (
             <span className={`text-gray-900 font-bold tracking-tight ${compact ? 'text-[11px] sm:text-[15px]' : 'text-[15px]'}`}>{formatPrice(price)}</span>
           )}
-          {originalPrice && (
+          {discount > 0 && originalPrice != null && (
             <span className={`text-gray-500 line-through decoration-gray-300 ${compact ? 'text-[9px] sm:text-[13px]' : 'text-[13px]'}`}>{formatPrice(originalPrice)}</span>
           )}
         </div>

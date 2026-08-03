@@ -12,6 +12,7 @@ import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { getPreorderShippingNote, isPreorderProduct } from '@/lib/preorder';
+import { displayCompareAtPrice, displayDiscountPercent } from '@/lib/storefront-pricing';
 
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
@@ -249,7 +250,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     );
   }
 
-  const discount = product.compare_at_price ? Math.round((1 - activePrice / product.compare_at_price) * 100) : 0;
+  const compareAtDisplay = displayCompareAtPrice(product.compare_at_price, activePrice);
+  const discount = displayDiscountPercent(product.compare_at_price, activePrice);
   const minVariantPrice = hasVariants ? Math.min(...product.variants.map((v: any) => v.price || product.price)) : product.price;
 
   const productSchema = generateProductSchema({
@@ -378,8 +380,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   ) : (
                     <span className="text-2xl lg:text-[30px] font-medium text-gray-900">GH₵{activePrice.toFixed(2)}</span>
                   )}
-                  {product.compare_at_price && product.compare_at_price > activePrice && (
-                    <span className="text-lg text-gray-400 line-through decoration-gray-300">GH₵{product.compare_at_price.toFixed(2)}</span>
+                  {compareAtDisplay != null && (
+                    <span className="text-lg text-gray-400 line-through decoration-gray-300">GH₵{compareAtDisplay.toFixed(2)}</span>
                   )}
                 </div>
 
