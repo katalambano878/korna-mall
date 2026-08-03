@@ -21,6 +21,7 @@ export interface SliderProduct {
   colorVariants?: ColorVariant[];
   category?: string;
   categorySlug?: string;
+  isPreorder?: boolean;
 }
 
 interface ProductSliderProps {
