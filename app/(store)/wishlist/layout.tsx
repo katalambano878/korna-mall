@@ -2,7 +2,7 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Wishlist',
-  description: 'Your saved ANAEL Cosmetics products.',
+  description: 'Your saved KORNA MALL products.',
   path: '/wishlist',
   noindex: true,
 });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isPlainPostgres } from '@/lib/db/mode';
+import { collectEnvChecks } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -20,6 +21,8 @@ export async function GET() {
     auth_jwt: process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET
       ? 'configured'
       : 'missing',
+    hubtel: 'not_implemented',
+    paystack: 'not_implemented',
   };
 
   if (isPlainPostgres()) {
@@ -34,12 +37,18 @@ export async function GET() {
     checks.database = process.env.NEXT_PUBLIC_SUPABASE_URL ? 'supabase_url_set' : 'missing';
   }
 
+  const env = collectEnvChecks().map((c) => ({
+    key: c.key,
+    status: c.ok ? 'ok' : c.required ? 'missing_required' : 'missing_optional',
+  }));
+
   const healthy = checks.app === 'ok' && checks.database !== 'error';
   return NextResponse.json(
     {
       ok: healthy,
       timestamp: new Date().toISOString(),
       checks,
+      env,
     },
     { status: healthy ? 200 : 503 }
   );

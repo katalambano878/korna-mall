@@ -59,7 +59,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-white">
       <PageHero
         title="Our Blog"
-        subtitle="Beauty tips, product guides, and the latest trends from Anael Cosmetics."
+        subtitle="Shopping tips, product guides, and the latest trends from KORNA MALL."
         backgroundImage="/blog-hero.png"
       />
 
@@ -235,7 +235,7 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Shopping?</h2>
           <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-            Browse our curated collection of hair care, beauty products, lashes and accessories
+            Browse our curated collection of products from trusted sellers across Ghana
           </p>
           <Link
             href="/shop"

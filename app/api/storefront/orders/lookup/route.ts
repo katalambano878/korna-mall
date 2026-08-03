@@ -134,7 +134,34 @@ async function handlePay(body: { orderId?: string }) {
     return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, order: data });
+  // Do not expose full PII to anyone who only knows the order id/number.
+  const safe = {
+    id: data.id,
+    order_number: data.order_number,
+    total: data.total,
+    currency: data.currency,
+    subtotal: data.subtotal,
+    shipping_total: data.shipping_total,
+    discount_total: data.discount_total,
+    payment_status: data.payment_status,
+    email: maskEmail(String(data.email || '')),
+    phone: maskPhone(String(data.phone || '')),
+    shipping_address: data.shipping_address
+      ? { city: (data.shipping_address as any)?.city, region: (data.shipping_address as any)?.region }
+      : null,
+    created_at: data.created_at,
+    metadata: {
+      moolre_external_ref: (data.metadata as any)?.moolre_external_ref || null,
+    },
+  };
+
+  return NextResponse.json({ success: true, order: safe });
+}
+
+function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 4) return '***';
+  return `${digits.slice(0, 3)}****${digits.slice(-3)}`;
 }
 
 async function handleSuccess(body: { orderNumber?: string; email?: string }) {

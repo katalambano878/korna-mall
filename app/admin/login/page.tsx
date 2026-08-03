@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <Image src="/anael-logo.png" alt="Anael Cosmetics" width={180} height={56} className="h-10 w-auto mx-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+            <Image src="/logo.svg" alt="KORNA MALL" width={180} height={56} className="h-10 w-auto mx-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mt-6 mb-2">Admin Login</h1>
           <p className="text-gray-600">Sign in to access the admin dashboard</p>

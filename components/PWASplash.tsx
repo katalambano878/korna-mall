@@ -30,7 +30,7 @@ export default function PWASplash() {
       <div className="pwa-splash-logo mb-6">
         <span className="text-5xl font-serif font-bold text-white">SF</span>
       </div>
-      <h1 className="text-white text-xl font-bold font-serif mb-2">ANAEL</h1>
+      <h1 className="text-white text-xl font-bold font-serif mb-2">KORNA MALL</h1>
       <p className="text-blue-200 text-sm font-medium mb-8">Launching your customizable shopping experience</p>
       <div className="pwa-splash-dots flex gap-1.5">
         <span className="w-2 h-2 bg-white rounded-full" />

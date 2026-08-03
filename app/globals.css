@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --brand-ink: #1C1917;
+  --brand-accent: #C2410C;
+  --brand-surface: #FAF7F2;
+  --brand-muted: #D6D3D1;
+}
+
 /* ========================================
    ANIMATIONS & EFFECTS
    ======================================== */

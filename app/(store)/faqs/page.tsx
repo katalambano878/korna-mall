@@ -66,7 +66,7 @@ export default function FAQsPage() {
     {
       category: 'returns',
       question: 'Which items cannot be returned?',
-      answer: 'For hygiene reasons, we cannot accept returns on opened cosmetics, intimate apparel, earrings, or perishable goods. Custom or personalised items are also non-returnable unless defective.'
+      answer: 'For hygiene and safety reasons, we cannot accept returns on opened personal-care items, intimate apparel, earrings, or perishable goods. Custom or personalised items are also non-returnable unless defective.'
     },
     {
       category: 'returns',
@@ -225,7 +225,7 @@ export default function FAQsPage() {
               Contact Support
             </Link>
             <a
-              href="https://wa.me/233242853166"
+              href="https://wa.me/233543832358"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full font-medium hover:bg-blue-500 transition-colors whitespace-nowrap"

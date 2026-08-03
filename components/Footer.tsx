@@ -27,8 +27,8 @@ function FooterSection({ title, children }: { title: string, children: React.Rea
 export default function Footer() {
   const { getSetting } = useCMS();
 
-  const siteName = getSetting('site_name') || 'ANAEL';
-  const siteLogo = getSetting('site_logo') || '/anael-logo.png';
+  const siteName = getSetting('site_name') || 'KORNA MALL';
+  const siteLogo = getSetting('site_logo') || '/logo.svg';
   const siteTagline = getSetting('site_tagline') || '';
   const socialInstagram = getSetting('social_instagram') || '';
   const socialTiktok = getSetting('social_tiktok') || '';
@@ -75,7 +75,7 @@ export default function Footer() {
               </Link>
 
               <p className="text-[#b9c7df] font-light leading-relaxed text-[15px] max-w-sm">
-                A flexible storefront template that you can customize with your brand voice, products, and customer journey.
+                {siteTagline || 'KORNA MALL — your online mall in Accra. Shop quality products with delivery across Ghana.'}
               </p>
 
               <div className="flex gap-4 pt-4">

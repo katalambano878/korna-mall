@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#2563eb',
+  themeColor: '#1C1917',
 };
 
 const siteUrl = SITE_URL;
@@ -29,7 +29,7 @@ const siteUrl = SITE_URL;
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${SITE_NAME} — Lip Glosses, Lashes & Beauty Essentials in Ghana`,
+    default: `${SITE_NAME} — Online Shopping Mall in Accra, Ghana`,
     template: `%s | ${SITE_SHORT_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GH",
     url: siteUrl,
-    title: `${SITE_NAME} — Premium Cosmetics & Beauty Products`,
+    title: `${SITE_NAME} — Shop Online in Accra, Ghana`,
     description: SITE_DESCRIPTION,
     siteName: SITE_SHORT_NAME,
     images: [
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Premium Cosmetics & Beauty Products`,
+    title: `${SITE_NAME} — Shop Online in Accra, Ghana`,
     description: SITE_DESCRIPTION,
     images: [absoluteUrl(DEFAULT_OG_IMAGE)],
   },
@@ -106,12 +106,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* PWA Meta Tags */}
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content="#1C1917" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="ANAEL" />
+        <meta name="apple-mobile-web-app-title" content="KORNA MALL" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#2563eb" />
+        <meta name="msapplication-TileColor" content="#1C1917" />
         <meta name="msapplication-tap-highlight" content="no" />
 
         <link rel="icon" href="/favicon.png" sizes="any" type="image/png" />

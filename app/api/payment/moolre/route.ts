@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 import { fetchWithTimeout } from '@/lib/fetch-timeout';
+import { recordPaymentAttempt } from '@/lib/payments/audit';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -130,6 +131,19 @@ export async function POST(req: Request) {
             if (metaError) {
                 console.error('[Payment] Failed to store external ref (non-fatal):', metaError.message);
             }
+
+            await recordPaymentAttempt({
+                orderId: order.id,
+                orderNumber: orderRef,
+                internalReference: uniqueRef,
+                amountExpected: amount,
+                currency: 'GHS',
+                initiationPayload: {
+                    callback: payload.callback,
+                    redirect: payload.redirect,
+                    externalref: uniqueRef,
+                },
+            });
 
             return NextResponse.json({ success: true, url: result.data.authorization_url, reference: result.data.reference });
         } else {

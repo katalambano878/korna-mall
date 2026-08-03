@@ -1,111 +1,60 @@
-# ANAEL Cosmetics — Performance Report
+# KORNA MALL — Performance Report
 
-**Scope:** Admin freezing, API timeouts, REST abuse mitigation, and remaining recommendations.
+## Baseline (code audit)
 
----
+| Area | Finding |
+|------|---------|
+| Pool | Shared singleton; previously no HMR guard / connection timeout |
+| Client DB | Browser → REST shim only (no direct pg) |
+| Realtime | None |
+| Payment/SMS | `fetchWithTimeout` 15–20s |
+| Build | Production build succeeds (~106 kB shared First Load JS) |
 
-## Observed Freezing Causes
+## Freezing / slowness causes addressed
 
-### 1. Unpaginated client-side queries
+| Cause | Fix |
+|-------|-----|
+| Dev hot-reload orphaning `pg` pools → “too many clients” | `globalThis.__kornaPgPool` |
+| Hung DB connections | `connectionTimeoutMillis` default 10s |
+| Runaway queries | `statement_timeout` default 30s |
+| SMS hang in admin test | 15s timeout |
+| Callback + verify double work | Deduped notifications via claim RPC |
 
-Several admin pages fetch entire tables through supabase-js with no `limit`:
+## Slow query / index recommendations
 
-| Page | Query | Impact |
-|------|-------|--------|
-| `/admin/orders` | All orders + embedded `order_items` | Grows linearly with order count (~75 today) |
-| `/admin` (dashboard) | All orders for revenue/stats | Full table scan on every dashboard load |
-| `/admin/notifications` | All customers (email, phone) | Large recipient list in browser memory |
-| `/admin/customers` | `select('*')` unpaginated | Degrades with CRM growth |
+Applied indexes (new migration):
 
-These block the main thread while parsing large JSON responses and re-rendering lists.
+- `payment_attempts(order_id|order_number|gateway_reference|status|created_at)`
+- `callback_events(reference|received_at)` + unique `(gateway, payload_hash)`
+- `sms_attempts(related_order_id|created_at)`
 
-### 2. Hung external fetches
+Existing schema already indexes common order/product lookups (see complete schema).
 
-Payment and notification code called Moolre and SMS APIs without timeouts. A slow or unresponsive upstream could hold the Node request handler open indefinitely, causing:
+## Rendering / bundle
 
-- Stalled payment initiation responses
-- Frozen callback/verify handlers under load
-- SMS sends blocking notification batch paths
+- Storefront uses client components for cart/shop (expected)  
+- Admin product list is heavy — paginate when catalog grows  
+- No artificial memoization pass (no measured win without metrics)
 
----
+## Before / after (architecture)
 
-## Fixes Applied
+| Metric | Before | After |
+|--------|--------|-------|
+| Pool HMR safety | Module-only singleton | `globalThis` guarded |
+| Connection timeout | None | 10s |
+| Statement timeout | None | 30s |
+| Payment audit trail | Order metadata only | Dedicated tables |
+| Notification race | Check-then-set metadata | Atomic claim function |
 
-### Fetch timeouts — `lib/fetch-timeout.ts`
+## Infrastructure recommendations
 
-| Caller | Timeout | Endpoint |
-|--------|---------|----------|
-| Moolre payment initiation | 20s | `api.moolre.com/embed/link` |
-| Moolre verify | 15s | `api.moolre.com/open/transact/status` |
-| Moolre SMS | 15s | `api.moolre.com/open/sms/send` |
+- Keep Postgres on same VPS / private network  
+- `PG_POOL_MAX` ≤ available Postgres `max_connections` / app instances  
+- Apply `20260803000000_payment_audit_tables.sql` before relying on audit helpers  
+- CDN for public product images when traffic grows  
 
-On timeout, payment routes return 504 with a user-facing retry message.
+## Measurements still needed (manual)
 
-### REST ACL — abuse and data exposure
-
-`lib/db/rest-acl.ts` + `lib/db/rest-auth.ts`:
-
-- Blocks anonymous bulk reads of `orders`, `customers`, `order_items`
-- Prevents storage uploads without staff credentials
-- Reduces scraper-driven DB load from open PostgREST-shaped endpoints
-
-**Note:** ACL is in codebase but **staging still needs deploy** for these protections to be live.
-
-### Cron batch limit
-
-`app/api/cron/payment-reminders/route.ts` processes max **50** unpaid orders per invocation to avoid long-running cron requests.
-
-### Server-side checkout
-
-`app/api/storefront/checkout/route.ts` consolidates cart validation server-side (max 50 items), reducing malformed client retry storms.
-
----
-
-## Remaining Recommendations
-
-### High priority — admin pagination
-
-| Page | Recommendation |
-|------|----------------|
-| `/admin/orders` | Server-side pagination (25–50 per page), defer `order_items` to detail view |
-| `/admin` dashboard | Aggregate queries in API route (`COUNT`, `SUM` by date) instead of fetching all orders |
-| `/admin/notifications` | Paginate customer fetch or move recipient build to `/api/notifications` |
-| `/admin/customers` | Add `.range()` pagination and search |
-
-### Medium priority
-
-- Add default `limit` cap in REST shim for anon GET requests (e.g. max 100 rows unless staff)
-- Index review: ensure `orders.created_at`, `orders.payment_status`, `orders.user_id` indexed
-- Consider React Query or SWR with stale-while-revalidate for admin lists
-
-### Low priority
-
-- Lazy-load `ProductSalesStats` on orders page (already toggleable)
-- Compress admin chart data server-side (7-day window only needs 7 aggregates)
-
----
-
-## Health Monitoring
-
-`GET /api/health` returns:
-
-```json
-{
-  "ok": true,
-  "checks": {
-    "app": "ok",
-    "mode": "plain_postgres",
-    "database": "ok",
-    "payment_moolre": "configured",
-    "callback_secret": "configured"
-  }
-}
-```
-
-Use for uptime checks; does not expose secrets or measure query latency.
-
----
-
-## What Was Not Tested
-
-No load tests or Lighthouse benchmarks were run as part of this repair. Performance improvements are based on code review and known failure modes, not measured before/after metrics.
+- Lighthouse / TTFB with real `DATABASE_URL`  
+- EXPLAIN ANALYZE on admin order list under load  
+- Concurrent Moolre callback soak test

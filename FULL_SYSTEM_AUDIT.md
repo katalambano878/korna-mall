@@ -1,155 +1,93 @@
-# ANAEL Cosmetics — Full System Audit
+# KORNA MALL — Full System Audit
 
-**Project:** `anaelcosmetics`  
 **Branch:** `staging/plain-postgres`  
-**Staging URL:** https://anaelcosmetics-staging.169-58-8-203.sslip.io  
-**Audit date:** 2026-07-30
+**Date:** 2026-08-03  
+**Mode:** Plain Postgres (no hosted Supabase runtime)
 
----
+## Architecture summary
 
-## Baseline Before Repair
+| Layer | Implementation |
+|-------|----------------|
+| App | Next.js 15, React 19, Node.js runtime for DB routes |
+| Data | `pg` Pool → `lib/db/supabase-compat.ts` + `/rest/v1`, `/auth/v1`, `/storage/v1` |
+| Auth | Local JWT (bcrypt + jose), cookies; middleware role check |
+| ACL | `lib/db/rest-acl.ts` (replaces Supabase RLS) |
+| Storage | Local disk (`STORAGE_ROOT`) |
+| Payments | **Moolre only** (Hubtel/Paystack not implemented) |
+| SMS/Email | Moolre SMS + Resend |
+| Realtime | Not used |
 
-| Item | State |
-|------|--------|
-| Branch | `staging/plain-postgres` |
-| Staging health | App responding at staging URL |
-| Staging DB | ~75 orders in `store_anaelcosmetics` |
-| Local dev | `next` package broken locally; no `.env` present |
-| Critical exposure | Open `GET /rest/v1/orders` returned all orders including customer emails (confirmed on staging **before** ACL deploy) |
-| Payment gateways | Moolre only — Hubtel and Paystack **not implemented** |
+## Route inventory
 
----
+### Store (34)
+`/`, `/about`, `/account`, `/account/privacy`, `/account/verify-email`, `/account/verify-phone`, `/auth/*`, `/blog`, `/blog/[id]`, `/cart`, `/categories`, `/checkout`, `/contact`, `/faqs`, `/help`, `/help/article/[id]`, `/maintenance`, `/offline`, `/order-success`, `/order-tracking`, `/pay/[orderId]`, `/privacy`, `/product/[slug]`, `/pwa-settings`, `/returns`, `/returns/confirmation`, `/shipping`, `/shop`, `/support/ticket`, `/support/tickets`, `/terms`, `/wishlist`
 
-## Architecture
+### Admin (20)
+`/admin`, `/admin/analytics`, `/admin/blog`, `/admin/categories`, `/admin/coupons`, `/admin/customer-insights`, `/admin/customers`, `/admin/customers/[id]`, `/admin/inventory`, `/admin/login`, `/admin/modules`, `/admin/notifications`, `/admin/orders`, `/admin/orders/[id]`, `/admin/pos`, `/admin/products`, `/admin/products/new`, `/admin/products/[id]`, `/admin/reviews`, `/admin/test-sms`
 
-```
-Browser (supabase-js)
-    │
-    ├─► /auth/v1/*     → lib/db/auth.ts (JWT sessions, bcrypt passwords)
-    ├─► /rest/v1/*     → lib/db/supabase-compat.ts → pg Pool (when DATABASE_URL set)
-    └─► /storage/v1/*  → lib/db/storage.ts (local disk + HMAC signed URLs)
+### API (11) + shims
+Health, notifications, recaptcha, cron reminders, storefront products/categories/checkout/lookup, Moolre payment/callback/verify, plus `/auth/v1`, `/rest/v1`, `/storage/v1`.
 
-Server (API routes, cron, middleware)
-    └─► supabaseAdmin → plain-PG compat client OR hosted Supabase service role
-```
+## Database architecture
 
-**Stack:** Next.js 15 (`next@^15.1.11`), React 19, `@supabase/supabase-js@^2.91.1`, `pg@^8.18.0`, `jose` (JWT).
+- Singleton pool with `globalThis` HMR guard
+- Timeouts: connection 10s, idle 30s, statement 30s (env-overridable)
+- Additive migration: `payment_attempts`, `callback_events`, `sms_attempts`, `claim_order_confirmation()`
 
-**Mode detection:** `lib/db/mode.ts` — plain Postgres active when `DATABASE_URL` or `POSTGRES_URL` is set.
+## Authentication architecture
 
-**Browser client:** `lib/supabase.ts` — in plain-PG mode, `NEXT_PUBLIC_SUPABASE_URL` must point at **this app's origin** so supabase-js hits local shims instead of hosted Supabase.
+- Browser supabase-js → app `/auth/v1`
+- Access JWT 7d / refresh 30d (stateless; logout = client cookie clear)
+- Admin: middleware + server `verifyAdminToken`
 
-**Admin client:** `lib/supabase-admin.ts` — uses in-process pg compat when plain Postgres; otherwise hosted Supabase service-role client.
+## Payment architecture
 
----
+1. Checkout (server-priced) → pending order  
+2. Optional `/pay/[orderId]` → Moolre initiate (DB amount)  
+3. Callback secret check → amount match → `mark_order_paid` (FOR UPDATE, idempotent)  
+4. Atomic `claim_order_confirmation` → SMS/email once  
+5. Audit rows in `payment_attempts` / `callback_events`
 
-## Route Inventory (54 pages under `app/`)
+Default checkout path is **WhatsApp**; Moolre is the card/MoMo gateway path.
 
-### Storefront — 33 pages
+## SMS architecture
 
-| Path | Purpose |
-|------|---------|
-| `/` | Home |
-| `/shop` | Product listing |
-| `/categories` | Category browse |
-| `/product/[slug]` | Product detail |
-| `/cart` | Shopping cart |
-| `/checkout` | Checkout (WhatsApp primary) |
-| `/pay/[orderId]` | Pay page (Moolre link) |
-| `/order-success` | Post-payment confirmation |
-| `/order-tracking` | Guest order lookup |
-| `/wishlist` | Saved items |
-| `/about`, `/contact`, `/faqs` | Content |
-| `/blog`, `/blog/[id]` | Blog |
-| `/shipping`, `/returns`, `/returns/confirmation` | Policies |
-| `/privacy`, `/terms` | Legal |
-| `/help`, `/help/article/[id]` | Help center |
-| `/support/ticket`, `/support/tickets` | Support |
-| `/auth/login`, `/auth/signup`, `/auth/forgot-password` | Auth |
-| `/account`, `/account/privacy`, `/account/verify-email`, `/account/verify-phone` | Account |
-| `/offline`, `/maintenance`, `/pwa-settings` | Utility |
+- `lib/notifications.ts` → Moolre VAS API with 15s timeout  
+- Confirmation gated by `claim_order_confirmation`  
+- Admin test SMS requires admin token + timeout
 
-### Admin — 21 pages
+## Performance findings
 
-| Path | Purpose |
-|------|---------|
-| `/admin` | Dashboard |
-| `/admin/login` | Staff login |
-| `/admin/orders`, `/admin/orders/[id]` | Order management |
-| `/admin/products`, `/admin/products/new`, `/admin/products/[id]` | Catalog |
-| `/admin/categories`, `/admin/inventory` | Catalog ops |
-| `/admin/customers`, `/admin/customers/[id]`, `/admin/customer-insights` | CRM |
-| `/admin/coupons`, `/admin/reviews`, `/admin/blog` | Marketing |
-| `/admin/analytics`, `/admin/notifications` | Reporting & campaigns |
-| `/admin/pos` | Point of sale |
-| `/admin/modules` | Feature toggles |
-| `/admin/test-sms` | SMS testing |
+| Issue | Status |
+|-------|--------|
+| HMR pool leak risk | **Fixed** (`globalThis` singleton) |
+| Missing connection/statement timeouts | **Fixed** |
+| Client → direct `pg` | None (OK) |
+| Large admin product pages | Known; paginate when catalog grows |
+| No realtime | N/A |
 
-### API & shim routes (not counted in 54 pages)
+## Security findings & fixes
 
-| Route | Purpose |
-|-------|---------|
-| `/api/health` | Public health check |
-| `/api/storefront/checkout` | Server-side checkout (DB-priced) |
-| `/api/storefront/orders/lookup` | Guest-safe order lookup |
-| `/api/storefront/products`, `/api/storefront/categories` | Storefront data |
-| `/api/payment/moolre`, `/callback`, `/verify` | Moolre payment flow |
-| `/api/cron/payment-reminders` | Unpaid order reminders |
-| `/api/notifications`, `/api/recaptcha/verify` | Notifications, captcha |
-| `/auth/v1/*`, `/rest/v1/*`, `/storage/v1/*` | Supabase-compat shims |
+| Finding | Fix |
+|---------|-----|
+| Guest could spoof `orders.user_id` | Forced to session user or null |
+| Coupons enumerable by anon | Removed from public GET |
+| Pay lookup leaked email/phone | Masked PII |
+| Callback/SMS races | Audit tables + claim RPC |
+| SSL `rejectUnauthorized:false` | Documented; optional strict via `PGSSL_REJECT_UNAUTHORIZED=true` |
 
----
+## Remaining risks
 
-## Critical Findings and Fixes
+- Hubtel/Paystack not in codebase  
+- Stateless refresh JWT (no server revoke list)  
+- Role baked into JWT until expiry  
+- Live gateway/SMS tests require credentials + `store_korna`  
+- Hero images are generic stock (not brand photography)
 
-| Finding | Severity | Fix |
-|---------|----------|-----|
-| Open `GET /rest/v1/orders` exposed all customer emails | **Critical** | `lib/db/rest-acl.ts` + `lib/db/rest-auth.ts` — default-deny REST ACL; orders readable only by owner (`user_id`) or staff/service role |
-| Client-trusted checkout totals / prices | **High** | `app/api/storefront/checkout/route.ts` — recalculates from DB prices and stock |
-| Client-trusted payment amounts | **High** | `app/api/payment/moolre/route.ts` — amount always from DB `orders.total` |
-| Forged payment success via redirect flag | **High** | `app/api/payment/moolre/verify/route.ts` — only trusts Moolre API status |
-| Callback without secret in production | **High** | Callback rejects when `MOOLRE_CALLBACK_SECRET` missing in production |
-| Callback amount mismatch accepted | **High** | Callback and verify reject if paid amount ≠ order total (±0.01) |
-| Double stock reduction on re-callback | **Medium** | `mark_order_paid` idempotent migration + `stock_reduced` metadata guard |
-| Duplicate confirmation emails/SMS | **Medium** | `confirmation_sent` metadata flag in callback and verify |
-| Guest order pages hit open REST | **High** | `app/api/storefront/orders/lookup/route.ts` — email-gated track mode, masked success mode |
-| Storage uploads open to anon | **High** | `authorizeStorageWrite` — admin/staff/service role only |
-| Hung Moolre/SMS fetches freeze handlers | **Medium** | `lib/fetch-timeout.ts` (15–20 s) on payment and SMS calls |
-| Admin middleware relied on hosted Supabase | **Medium** | `middleware.ts` — JWT verify via `AUTH_JWT_SECRET` in plain-PG mode |
-| No local env template | **Low** | `.env.example` added |
-| No health endpoint | **Low** | `/api/health` added |
+## Broken features discovered
 
----
+- None that block build; DB-backed flows need `DATABASE_URL` + migration apply
 
-## Payments: Moolre Only
+## Fixes applied
 
-| Gateway | Status |
-|---------|--------|
-| **Moolre** | Implemented — initiation, callback, verify, SMS |
-| **Hubtel** | Not implemented (no code, no env vars) |
-| **Paystack** | Not implemented (no code, no env vars) |
-
-**Current checkout UX:** Moolre is disabled in the checkout UI; orders default to **WhatsApp** placement (`paymentMethod: 'whatsapp'`). Moolre routes remain for admin payment links, cron reminders, and `/pay/[orderId]`.
-
----
-
-## Remaining Risks / Manual Actions
-
-1. **Deploy repair branch to staging** — ACL and lookup routes exist in code but staging still runs pre-ACL build until redeployed. Re-verify that open `/rest/v1/orders` is blocked after deploy.
-2. **Apply DB migration** — run `node scripts/apply-mark-order-paid.mjs` (or `supabase db push`) for idempotent `mark_order_paid`.
-3. **Set production secrets** — `AUTH_JWT_SECRET`, `MOOLRE_CALLBACK_SECRET`, `CRON_SECRET`, `STORAGE_SIGNING_SECRET`, Moolre API keys, Resend key.
-4. **Configure env on VPS** — copy `.env.example` → deploy env; set `DATABASE_URL`, `STORAGE_ROOT`, `NEXT_PUBLIC_APP_URL`.
-5. **Admin dashboard pagination** — `/admin` and `/admin/orders` fetch all orders client-side; will degrade as order count grows (see `PERFORMANCE_REPORT.md`).
-6. **Local dev** — restore working `node_modules` / fix broken `next` package; copy `.env.example` to `.env.local` for local testing.
-7. **WhatsApp checkout** — orders created as pending; manual payment confirmation by staff (no auto-pay on WhatsApp path).
-8. **Cron job** — schedule `GET /api/cron/payment-reminders` with `Authorization: Bearer $CRON_SECRET`.
-
----
-
-## Verification Checklist (post-deploy)
-
-- [ ] `GET /api/health` returns `ok: true`, `mode: plain_postgres`, `database: ok`
-- [ ] `GET /rest/v1/orders` as anon returns 403
-- [ ] Order tracking requires matching email via `/api/storefront/orders/lookup`
-- [ ] Moolre callback rejects wrong secret and amount mismatch
-- [ ] Storage upload without staff JWT returns 403
+See `REPAIR_CHANGELOG.md`.

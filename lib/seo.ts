@@ -1,37 +1,31 @@
 import type { Metadata } from 'next';
 
-export const SITE_NAME = 'ANAEL Cosmetics';
-export const SITE_SHORT_NAME = 'ANAEL';
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.anaelcosmetics.com').replace(/\/+$/, '');
+export const SITE_NAME = 'KORNA MALL';
+export const SITE_SHORT_NAME = 'KORNA MALL';
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005').replace(/\/+$/, '');
 export const SITE_DESCRIPTION =
-  'Shop premium lip glosses, lip liners, lip care, lashes, hair clips and makeup bags at ANAEL Cosmetics. Quality beauty essentials in beautiful shades for every skin tone — based in Accra, Ghana.';
-export const SITE_PHONE = '0242853166';
-export const SITE_EMAIL = process.env.ADMIN_EMAIL || 'info@doctorbarns.com';
+  'Shop online at KORNA MALL in Accra, Ghana. Discover everyday essentials, fashion, and more — with delivery across Ghana.';
+export const SITE_PHONE = '0543832358';
+export const SITE_PHONE_SECONDARY = '0248782778';
+export const SITE_EMAIL = process.env.ADMIN_EMAIL || '';
 export const SITE_LOCALE = 'en_GH';
 export const DEFAULT_OG_IMAGE = '/og-image.png';
 
 export const DEFAULT_KEYWORDS = [
-  'ANAEL Cosmetics',
-  'Anael cosmetics Ghana',
-  'lip gloss Ghana',
-  'lip gloss Accra',
-  'lip liners Ghana',
-  'lip care products',
-  'false lashes Ghana',
-  'makeup bags Ghana',
-  'hair clips Ghana',
-  'beauty products Ghana',
-  'cosmetics online Ghana',
-  'affordable makeup Ghana',
-  'buy cosmetics online Accra',
-  'Ghana beauty store',
-  'makeup shop Ghana',
+  'KORNA MALL',
+  'Korna Mall Ghana',
+  'online shopping Accra',
+  'online store Ghana',
+  'shop online Accra',
+  'ecommerce Ghana',
+  'delivery Accra',
+  'Korna Mall shop',
 ];
 
 export const SOCIAL_PROFILES = {
-  instagram: 'https://instagram.com/anael_cosmeticss',
-  tiktok: 'https://www.tiktok.com/@anael_cosmetics',
-  snapchat: 'https://www.snapchat.com/add/Hira3166',
+  instagram: '',
+  tiktok: '',
+  facebook: '',
 };
 
 type PageSeoInput = {
@@ -119,94 +113,95 @@ export function buildPageMetadata({
 
 export const STATIC_PAGE_SEO = {
   home: {
-    title: 'ANAEL Cosmetics — Lip Glosses, Lashes & Beauty Essentials in Ghana',
+    title: 'KORNA MALL — Online Shopping in Accra, Ghana',
     description: SITE_DESCRIPTION,
     path: '/',
-    keywords: ['ANAEL Cosmetics Ghana', 'shop beauty online Ghana'],
+    keywords: ['KORNA MALL Accra', 'shop online Ghana'],
   },
   shop: {
-    title: 'Shop All Beauty Products',
+    title: 'Shop All Products',
     description:
-      'Browse lip glosses, lip liners, lip care, lashes, hair clips and makeup bags. Quality cosmetics at affordable prices with delivery across Ghana.',
+      'Browse products at KORNA MALL. Quality goods at fair prices with delivery across Accra and Ghana.',
     path: '/shop',
-    keywords: ['shop cosmetics Ghana', 'buy lip gloss online'],
+    keywords: ['shop online Ghana', 'buy online Accra'],
   },
   categories: {
     title: 'Shop by Category',
     description:
-      'Explore ANAEL Cosmetics categories — lip glosses, lip liners, lip care and more. Find the perfect beauty essentials for every look.',
+      'Explore KORNA MALL categories and find what you need — from everyday essentials to seasonal picks.',
     path: '/categories',
-    keywords: ['cosmetics categories', 'lip gloss categories Ghana'],
+    keywords: ['online store categories Ghana', 'KORNA MALL categories'],
   },
   about: {
-    title: 'About ANAEL Cosmetics',
+    title: 'About KORNA MALL',
     description:
-      'At ANAEL Cosmetics, beauty starts with confidence. Discover our story and our commitment to quality, performance, and affordable luxury.',
+      'Learn about KORNA MALL — an online store based in Accra, Ghana, focused on convenient shopping and reliable delivery.',
     path: '/about',
-    keywords: ['about ANAEL Cosmetics', 'Ghana beauty brand'],
+    keywords: ['about KORNA MALL', 'online store Accra'],
   },
   contact: {
     title: 'Contact Us',
     description:
-      'Get in touch with ANAEL Cosmetics. Questions about orders, products, or delivery? We are here to help customers across Ghana.',
+      'Get in touch with KORNA MALL. Questions about orders, products, or delivery? We are here to help customers across Ghana.',
     path: '/contact',
-    keywords: ['contact ANAEL Cosmetics', 'ANAEL customer support'],
+    keywords: ['contact KORNA MALL', 'KORNA MALL customer support'],
   },
   blog: {
-    title: 'Beauty Blog & Tips',
+    title: 'Blog & Updates',
     description:
-      'Beauty tips, product guides, and the latest trends from ANAEL Cosmetics. Learn how to shop smarter and glow with confidence.',
+      'Tips, product updates, and shopping guides from KORNA MALL.',
     path: '/blog',
-    keywords: ['beauty blog Ghana', 'makeup tips Ghana'],
+    keywords: ['KORNA MALL blog', 'shopping tips Ghana'],
   },
   faqs: {
     title: 'Frequently Asked Questions',
     description:
-      'Find quick answers about ordering, shipping, returns, payments, and more at ANAEL Cosmetics.',
+      'Find quick answers about ordering, shipping, returns, payments, and more at KORNA MALL.',
     path: '/faqs',
-    keywords: ['ANAEL FAQs', 'cosmetics shipping Ghana'],
+    keywords: ['KORNA MALL FAQs', 'shipping Ghana'],
   },
   privacy: {
     title: 'Privacy Policy',
-    description: 'Read how ANAEL Cosmetics collects, uses, and protects your personal information.',
+    description: 'Read how KORNA MALL collects, uses, and protects your personal information.',
     path: '/privacy',
   },
   terms: {
     title: 'Terms & Conditions',
-    description: 'Terms and conditions for shopping at ANAEL Cosmetics.',
+    description: 'Terms and conditions for shopping at KORNA MALL.',
     path: '/terms',
   },
   shipping: {
     title: 'Shipping Information',
-    description: 'Delivery options, timelines, and shipping policies for ANAEL Cosmetics orders in Ghana.',
+    description: 'Delivery options, timelines, and shipping policies for KORNA MALL orders in Ghana.',
     path: '/shipping',
-    keywords: ['cosmetics delivery Ghana', 'ANAEL shipping'],
+    keywords: ['delivery Ghana', 'KORNA MALL shipping'],
   },
   returns: {
     title: 'Returns & Refunds',
-    description: 'Learn about returns, exchanges, and refund policies at ANAEL Cosmetics.',
+    description: 'Learn about returns, exchanges, and refund policies at KORNA MALL.',
     path: '/returns',
-    keywords: ['ANAEL returns policy', 'cosmetics refunds Ghana'],
+    keywords: ['KORNA MALL returns policy', 'refunds Ghana'],
   },
 } as const;
 
 export function organizationSchema() {
+  const sameAs = Object.values(SOCIAL_PROFILES).filter(Boolean);
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: SITE_SHORT_NAME,
     legalName: SITE_NAME,
     url: SITE_URL,
-    logo: absoluteUrl('/anael-logo.png'),
+    logo: absoluteUrl('/logo.svg'),
     description: SITE_DESCRIPTION,
-    email: SITE_EMAIL,
+    ...(SITE_EMAIL ? { email: SITE_EMAIL } : {}),
     telephone: `+233${SITE_PHONE.replace(/^0/, '')}`,
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Accra',
       addressCountry: 'GH',
     },
-    sameAs: Object.values(SOCIAL_PROFILES),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 
@@ -230,6 +225,7 @@ export function websiteSchema() {
 }
 
 export function localBusinessSchema() {
+  const sameAs = Object.values(SOCIAL_PROFILES).filter(Boolean);
   return {
     '@context': 'https://schema.org',
     '@type': 'Store',
@@ -249,7 +245,7 @@ export function localBusinessSchema() {
       opens: '09:00',
       closes: '18:00',
     },
-    sameAs: Object.values(SOCIAL_PROFILES),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 

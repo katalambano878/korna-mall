@@ -1,19 +1,18 @@
 {
-  "name": "Storefront",
-  "short_name": "Storefront",
-  "description": "A customizable e-commerce storefront.",
+  "name": "KORNA MALL",
+  "short_name": "KORNA",
+  "description": "Shop online at KORNA MALL — Accra, Ghana.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#FAF7F2",
+  "theme_color": "#1C1917",
   "dir": "ltr",
   "lang": "en",
   "categories": [
     "shopping",
-    "lifestyle",
-    "beauty"
+    "lifestyle"
   ],
   "icons": [
     {

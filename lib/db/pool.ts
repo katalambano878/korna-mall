@@ -21,10 +21,9 @@ types.setTypeParser(1184, (v: string) => {
 types.setTypeParser(1700, (v: string | null) => (v === null ? null : parseFloat(v))); // numeric
 types.setTypeParser(20, (v: string | null) => (v === null ? null : parseInt(v, 10))); // int8
 
-let _pool: Pool | null = null;
+const globalForPg = globalThis as unknown as { __kornaPgPool?: Pool };
 
-export function getPool(): Pool {
-  if (_pool) return _pool;
+function createPool(): Pool {
   const connectionString =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
@@ -34,17 +33,50 @@ export function getPool(): Pool {
       "DATABASE_URL is not set, so the Postgres backend cannot start."
     );
   }
-  _pool = new Pool({
+
+  const max = Number(process.env.PG_POOL_MAX || 10);
+  const idleTimeoutMillis = Number(process.env.PG_IDLE_TIMEOUT_MS || 30_000);
+  const connectionTimeoutMillis = Number(process.env.PG_CONNECTION_TIMEOUT_MS || 10_000);
+  const statementTimeoutMs = Number(process.env.PG_STATEMENT_TIMEOUT_MS || 30_000);
+
+  const pool = new Pool({
     connectionString,
-    max: Number(process.env.PG_POOL_MAX || 10),
-    idleTimeoutMillis: 30_000,
+    max: Number.isFinite(max) && max > 0 ? max : 10,
+    idleTimeoutMillis: Number.isFinite(idleTimeoutMillis) ? idleTimeoutMillis : 30_000,
+    connectionTimeoutMillis: Number.isFinite(connectionTimeoutMillis)
+      ? connectionTimeoutMillis
+      : 10_000,
     // Self-hosted Postgres on the same host / private network: TLS optional.
+    // Prefer private networking; rejectUnauthorized:false is intentional for
+    // self-signed certs on private VPS links — do not expose PG publicly.
     ssl:
       process.env.PGSSL === "require"
-        ? { rejectUnauthorized: false }
+        ? { rejectUnauthorized: process.env.PGSSL_REJECT_UNAUTHORIZED === "true" }
         : undefined,
   });
-  return _pool;
+
+  pool.on("error", (err) => {
+    console.error("[pg-pool] Idle client error:", err.message);
+  });
+
+  // Apply statement timeout per new connection (cancels runaway queries).
+  if (Number.isFinite(statementTimeoutMs) && statementTimeoutMs > 0) {
+    pool.on("connect", (client) => {
+      client.query(`SET statement_timeout = ${Math.floor(statementTimeoutMs)}`).catch(() => {
+        /* non-fatal */
+      });
+    });
+  }
+
+  return pool;
+}
+
+export function getPool(): Pool {
+  if (globalForPg.__kornaPgPool) return globalForPg.__kornaPgPool;
+  const pool = createPool();
+  // Survive Next.js hot reload in development (prevents orphaned pools / too many clients).
+  globalForPg.__kornaPgPool = pool;
+  return pool;
 }
 
 export async function query<T = any>(

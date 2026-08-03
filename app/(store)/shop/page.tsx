@@ -235,7 +235,7 @@ function ShopContent() {
     <main className="min-h-screen bg-white">
       <PageHero
         title="Shop All Products"
-        subtitle="Browse our curated range of authentic hair care, beauty products, lashes and accessories"
+        subtitle="Browse our curated range of quality products from trusted sellers across Ghana"
         backgroundImage="/shop-hero.png"
       />
 

@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 const BLOG_POST_SEO: Record<string, { title: string; description: string; image: string; author: string }> = {
   '1': {
     title: 'The Ultimate Guide to Online Shopping in Ghana',
-    description: 'Learn how to shop online safely and confidently in Ghana with this comprehensive beauty and ecommerce guide from ANAEL Cosmetics.',
+    description: 'Learn how to shop online safely and confidently in Ghana with this comprehensive ecommerce guide from KORNA MALL.',
     image: 'https://readdy.ai/api/search-image?query=Modern%20African%20woman%20shopping%20online%20on%20laptop%20in%20bright%20contemporary%20home%20office%20coffee%20cup%20plants%20natural%20light%20relaxed%20lifestyle%20photography%20minimal%20clean%20background&width=1200&height=600&seq=blogpost1&orientation=landscape',
     author: 'Staff Writer',
   },
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ogImage: post.image,
     ogType: 'article',
     author: post.author,
-    keywords: ['beauty blog Ghana', 'ANAEL Cosmetics tips'],
+    keywords: ['online shopping Ghana', 'KORNA MALL tips'],
   });
 }
 
@@ -68,7 +68,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
 
         <p>Moreover, online stores often offer exclusive deals and promotions that aren't available in physical shops. You can shop at any time of day or night, without worrying about store opening hours or traffic.</p>
 
-        <h2>Choosing a Reliable Beauty Store</h2>
+        <h2>Choosing a Reliable Online Store</h2>
         <p>Not all online stores are created equal. When shopping online, look for these trust signals:</p>
         <ul>
           <li><strong>Secure website:</strong> The URL should start with "https://" and display a padlock icon</li>

@@ -1,4 +1,4 @@
-// ANAEL Service Worker v2.1
+// KORNA MALL Service Worker v2.1
 const CACHE_VERSION = 'sl-v2.1';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
@@ -222,7 +222,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data.json();
   const options = {
-    body: data.body || 'New update from ANAEL',
+    body: data.body || 'New update from KORNA MALL',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     vibrate: [100, 50, 100],
@@ -238,7 +238,7 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(
-      data.title || 'ANAEL',
+      data.title || 'KORNA MALL',
       options
     )
   );

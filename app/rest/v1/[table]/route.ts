@@ -140,14 +140,23 @@ export async function POST(
   let payload = body;
   if (!actor.isStaff && !actor.isServiceRole && table === "orders") {
     const rows = Array.isArray(body) ? body : [body];
-    payload = rows.map((row: Record<string, unknown>) => ({
-      ...row,
-      user_id: actor.userId || row.user_id || null,
-      payment_status: row.payment_status === "pending" || !row.payment_status
-        ? "pending"
-        : "pending",
-      status: row.status || "pending",
-    }));
+    // Never trust client-supplied user_id / payment_status / totals for anon/customer inserts.
+    // Authenticated users bind to their session; guests get null (not a spoofed UUID).
+    payload = rows.map((row: Record<string, unknown>) => {
+      const {
+        user_id: _ignoreUserId,
+        payment_status: _ignorePay,
+        total: _ignoreTotal,
+        subtotal: _ignoreSub,
+        ...safe
+      } = row;
+      return {
+        ...safe,
+        user_id: actor.userId || null,
+        payment_status: "pending",
+        status: typeof row.status === "string" ? row.status : "pending",
+      };
+    });
     if (!Array.isArray(body)) payload = payload[0];
   }
   if (!actor.isStaff && !actor.isServiceRole && table === "profiles" && actor.userId) {

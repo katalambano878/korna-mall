@@ -1,159 +1,81 @@
-# ANAEL Cosmetics — Payment & Callback Audit
+# KORNA MALL — Payment & Callback Audit
 
-**Gateway coverage:** Moolre only. Hubtel and Paystack are **not implemented** (no routes, no env vars, no SDK references).
+## Gateways
 
----
-
-## Payment Methods in Production UX
-
-| Method | Checkout UI | API support | Notes |
-|--------|-------------|-------------|-------|
-| **WhatsApp** | ✅ Default (active) | Order via `/api/storefront/checkout` | Customer redirected to `wa.me` with order summary; payment manual |
-| **Moolre** | ❌ Disabled in checkout UI | ✅ Full API | Used via `/pay/[orderId]`, admin "send payment link", cron reminders |
-
-Checkout hardcodes `paymentMethod: 'whatsapp'` (`app/(store)/checkout/page.tsx`). Moolre code paths remain for deferred online payment.
+| Gateway | Status |
+|---------|--------|
+| **Moolre** | Implemented (initiate, verify, callback) |
+| **Hubtel** | Not implemented |
+| **Paystack** | Not implemented |
 
 ---
 
-## Moolre Flow
+## Moolre flow
 
 ```
-Customer                    ANAEL App                      Moolre API
-    │                           │                              │
-    │── POST /api/payment/moolre ──►│                          │
-    │   { orderId }               │── embed/link ─────────────►│
-    │                           │◄── authorization_url ────────│
-    │◄── { url } ─────────────────│                              │
-    │── pay on Moolre ─────────────────────────────────────────►│
-    │                           │◄── POST /callback ───────────│
-    │                           │── mark_order_paid RPC        │
-    │── /order-success ─────────►│                              │
-    │── POST /verify ───────────►│── transact/status ─────────►│
+Customer → checkout (server prices) → pending order
+       → /pay/[orderId] → POST /api/payment/moolre (DB amount)
+       → Moolre hosted page
+       → redirect /order-success (NOT trusted alone)
+       → POST /api/payment/moolre/callback (secret + amount)
+       → mark_order_paid (FOR UPDATE, idempotent)
+       → claim_order_confirmation → SMS/email once
+       → optional POST /api/payment/moolre/verify (poll status)
 ```
 
-### 1. Initiation — `POST /api/payment/moolre`
+### Callback route
 
-**File:** `app/api/payment/moolre/route.ts`
+- URL: `/api/payment/moolre/callback`  
+- Method: POST (GET returns readiness JSON)  
+- Middleware: does **not** block (API only gets no-store)  
+- Auth: shared secret `MOOLRE_CALLBACK_SECRET` (required in production)  
+- Amount: compared to `orders.total` (±0.01)  
+- Idempotency: `mark_order_paid` + `callback_events` payload hash  
+- Duplicate protection: unique `(gateway, payload_hash)`  
+- Audit: `payment_attempts`, `callback_events`
 
-- Rate limited (`RATE_LIMITS.payment`)
-- Loads order by UUID or `order_number` from DB — **never trusts client amount**
-- Amount = `orders.total` from database
-- Generates unique external ref: `{order_number}-R{timestamp}`
-- Stores `moolre_external_ref` and `payment_method: 'moolre'` in order metadata
-- Calls `https://api.moolre.com/embed/link` with 20s timeout
-- Callback URL: `{NEXT_PUBLIC_APP_URL}/api/payment/moolre/callback`
-- Redirect URL: `{NEXT_PUBLIC_APP_URL}/order-success?order={ref}&payment_success=true`
+### Status mapping (internal)
 
-**Required env:** `MOOLRE_API_USER`, `MOOLRE_API_PUBKEY`, `MOOLRE_ACCOUNT_NUMBER`, `MOOLRE_MERCHANT_EMAIL`
+`pending | processing | successful | failed | cancelled | expired | reversed | refunded | partially_refunded`  
+via `lib/payments/status.ts` → order field uses `paid`/`failed`/`pending`.
 
-### 2. Callback — `POST /api/payment/moolre/callback`
+### Amount / currency
 
-**File:** `app/api/payment/moolre/callback/route.ts`
+- Initiate: amount from DB only, currency GHS  
+- Callback/verify: amount must match order total  
+- Frontend amount ignored
 
-- Accepts JSON, form, or urlencoded body
-- **Production:** rejects if `MOOLRE_CALLBACK_SECRET` unset or `body.secret` mismatch (403)
-- Parses order ref from `data.externalref` (strips `-R{ts}` suffix)
-- Success requires `body.status === 1` AND `data.txtstatus === 1`; explicit `txtstatus === 2` = failure
-- **Amount validation:** callback amount must match `orders.total` (±0.01) or 400
-- Calls `mark_order_paid(order_ref, moolre_ref)` RPC (idempotent)
-- Sends confirmation email/SMS once via `confirmation_sent` metadata flag
-- Failed payments set `payment_status: 'failed'` without overwriting paid orders
+### Test results (code-level)
 
-### 3. Verify — `POST /api/payment/moolre/verify`
-
-**File:** `app/api/payment/moolre/verify/route.ts`
-
-- Called from order-success page as fallback when callback is delayed
-- **Does not trust** `payment_success` query param or client redirect flags
-- Validates order number format: `ORD-{digits}-{digits}`
-- Polls Moolre `https://api.moolre.com/open/transact/status` with refs:
-  1. `metadata.moolre_external_ref` (preferred)
-  2. Plain `order_number` (legacy)
-- Requires Moolre `status === 1` and `txstatus === 1`
-- **Amount validation:** same ±0.01 tolerance as callback
-- Idempotent notification sending (same `confirmation_sent` guard)
+| Case | Status |
+|------|--------|
+| Valid callback path | Implemented |
+| Invalid secret | 403 |
+| Missing secret (prod) | 503 |
+| Duplicate callback | Ignored via event dedupe + already-paid short-circuit |
+| Amount mismatch | 400 reject |
+| Unknown reference | 404 |
+| Delayed fail after paid | Won't overwrite paid (`neq paid` / early return) |
+| Live gateway E2E | **Requires credentials** — manual |
 
 ---
 
-## WhatsApp Checkout Path
+## Hubtel
 
-**File:** `app/(store)/checkout/page.tsx` + `app/api/storefront/checkout/route.ts`
+Not in codebase. No initiation, callback, or verify routes. Do not register Hubtel callbacks until an adapter is built.
 
-1. Customer completes shipping form (reCAPTCHA optional)
-2. `POST /api/storefront/checkout` with cart lines (product IDs + qty only)
-3. Server recalculates prices, checks stock, creates order + order_items
-4. Default `paymentMethod: 'whatsapp'` → order status pending payment
-5. Client builds WhatsApp message with order number, items, total
-6. Redirect to `https://wa.me/{NEXT_PUBLIC_WHATSAPP_NUMBER}?text=...`
-7. Staff confirms payment manually in admin
+## Paystack
 
-**Security:** No client-provided totals; max 50 line items; rate limit 10/min per IP.
+Not in codebase. Secret keys must never be added to `NEXT_PUBLIC_*`. Adapter not present.
 
 ---
 
-## Amount Validation Summary
+## Reconciliation
 
-| Path | Amount source | Validation |
-|------|---------------|------------|
-| Moolre initiation | DB `orders.total` | Client amount ignored |
-| Moolre callback | `data.amount` | Must match DB total ±0.01 |
-| Moolre verify | Moolre API `data.amount` | Must match DB total ±0.01 |
-| WhatsApp checkout | DB product/variant prices | Server-side recalculation |
+- Cron: `/api/cron/payment-reminders` for unpaid reminders  
+- Admin can use verify endpoint + order detail  
+- Formal reconcile UI not built; audit tables enable investigation  
 
----
+## Checkout default
 
-## Idempotency
-
-| Mechanism | Location |
-|-----------|----------|
-| `mark_order_paid` skips if already paid | `supabase/migrations/20260730000000_mark_order_paid_idempotent.sql` |
-| `stock_reduced` metadata prevents double decrement | Same migration |
-| Callback returns success if order already paid | `callback/route.ts` |
-| Verify returns success if order already paid | `verify/route.ts` |
-| `confirmation_sent` prevents duplicate emails/SMS | callback + verify |
-
----
-
-## Supporting Systems
-
-| Feature | Route / file | Notes |
-|---------|--------------|-------|
-| Payment reminders | `GET /api/cron/payment-reminders` | Requires `Authorization: Bearer $CRON_SECRET`; max 50 orders/run |
-| Payment link email/SMS | `lib/notifications.ts` → `sendPaymentLink` | Uses Moolre initiation internally |
-| Order lookup (pay page) | `POST /api/storefront/orders/lookup` mode=`pay` | Returns payment fields without open REST |
-| Guest tracking | mode=`track` | Requires order number + email match |
-
----
-
-## Hubtel / Paystack
-
-| Gateway | Code | Env vars | Status |
-|---------|------|----------|--------|
-| Hubtel | None | None | **Not implemented** |
-| Paystack | None | None | **Not implemented** |
-
-Documented in `.env.example` comment only. Adding either gateway would require new routes, callback handlers, and checkout UI work.
-
----
-
-## Required Secrets (names only)
-
-```
-MOOLRE_API_USER
-MOOLRE_API_PUBKEY
-MOOLRE_ACCOUNT_NUMBER
-MOOLRE_MERCHANT_EMAIL
-MOOLRE_CALLBACK_SECRET    # required in production
-MOOLRE_SMS_API_KEY        # optional, for SMS notifications
-CRON_SECRET               # payment reminder cron
-```
-
----
-
-## Manual Verification (post-deploy)
-
-1. Create test order → initiate Moolre → confirm callback marks paid once
-2. Replay callback → confirm idempotent (no double stock reduction)
-3. Send callback with wrong amount → expect 400
-4. Send callback without secret (production) → expect 403
-5. WhatsApp checkout → order created, no Moolre URL generated
+Storefront checkout defaults to **WhatsApp** order handoff; Moolre remains available on `/pay/[orderId]` and POS.

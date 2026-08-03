@@ -12,23 +12,23 @@ export default function AboutPage() {
   const { getSetting } = useCMS();
   const [activeTab, setActiveTab] = useState('story');
 
-  const siteName = getSetting('site_name') || 'ANAEL';
+  const siteName = getSetting('site_name') || 'KORNA MALL';
 
   const values = [
     {
       icon: 'ri-verified-badge-line',
       title: 'Quality Comes First',
-      description: 'At Anael Cosmetics, quality comes first. We offer carefully crafted beauty essentials designed to look good, last, and feel comfortable every time you wear them.'
+      description: 'At KORNA MALL, quality comes first. We offer carefully selected products designed to deliver value, reliability, and a great shopping experience every time.'
     },
     {
       icon: 'ri-palette-line',
-      title: 'Shades for Every Skin Tone',
-      description: 'Beautiful shades for every skin tone. Whether you\u2019re keeping it soft or going full glam, there\u2019s something made for you.'
+      title: 'Something for Everyone',
+      description: 'From everyday essentials to special finds — whether you are shopping for yourself or your home, there is something made for you.'
     },
     {
       icon: 'ri-money-dollar-circle-line',
-      title: 'Luxury Without Compromise',
-      description: 'Our products give you the perfect balance of luxury, quality, and value — all at affordable prices, so you never have to compromise.'
+      title: 'Value Without Compromise',
+      description: 'Our products give you the perfect balance of quality and value — all at competitive prices, so you never have to compromise.'
     },
     {
       icon: 'ri-truck-line',
@@ -41,7 +41,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-white">
       <PageHero
         title="More Than Just A Brand"
-        subtitle="From Accra to your doorstep — lip glosses, lip liners, lip care, lashes, hair clips & makeup bags at prices that make sense."
+        subtitle="From Accra to your doorstep — shop quality products online at prices that make sense."
         backgroundImage="/about-hero.png"
       />
 
@@ -77,10 +77,10 @@ export default function AboutPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-8 tracking-tight">How It All Started</h2>
               <div className="space-y-6 text-lg text-gray-500 leading-relaxed font-light">
                 <p>
-                  At <strong className="font-semibold text-gray-900">ANAEL Cosmetics</strong>, we believe beauty starts with confidence. Makeup isn&apos;t about changing who you are — it&apos;s about bringing out what already makes you beautiful. Whether you&apos;re keeping it soft or going full glam, our products are made to help you feel your best every time you wear them.
+                  At <strong className="font-semibold text-gray-900">KORNA MALL</strong>, we believe great shopping starts with trust. Our online mall brings together quality products from trusted sellers — so you can shop with confidence, whether you are picking up everyday essentials or something special.
                 </p>
                 <p>
-                  We carefully select every product for its quality, performance, and comfort, so you can enjoy makeup that looks good, lasts, and is worth every penny. Our goal is simple: to give you products you can trust and a shopping experience you&apos;ll always come back to.
+                  We carefully select every product for its quality and value, so you get items you can rely on at prices that make sense. Our goal is simple: to give you products you can trust and a shopping experience you&apos;ll always come back to.
                 </p>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function AboutPage() {
                   Quality You Can Trust
                 </h3>
                 <p className="text-gray-500 text-[1.125rem] leading-[1.8] font-light group-hover:text-gray-600 transition-colors duration-700">
-                  Every product in our collection — from lip glosses and lip liners to lashes, hair clips and makeup bags — is personally inspected and tested before it reaches you. We source directly from trusted manufacturers and local suppliers to guarantee quality at every step.
+                  Every product in our collection is personally inspected before it reaches you. We source directly from trusted manufacturers and local suppliers to guarantee quality at every step.
                 </p>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function AboutPage() {
 
               <div className="relative z-10">
                 <h3 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-800 mb-5 tracking-tight group-hover:to-gray-600 transition-all duration-700">
-                  Affordable Beauty For Everyone
+                  Affordable Shopping For Everyone
                 </h3>
                 <p className="text-gray-500 text-[1.125rem] leading-[1.8] font-light group-hover:text-gray-600 transition-colors duration-700">
                   Whether you are shopping for yourself or looking for the perfect gift, {siteName} has you covered. We cut out the middleman by sourcing directly, so you get the best products at prices that make sense — delivered right to your doorstep across Ghana.
@@ -166,7 +166,7 @@ export default function AboutPage() {
           <div className="text-center mb-20 flex flex-col items-center">
             <span className="inline-block py-1.5 px-5 rounded-full bg-white text-gray-600 font-bold text-[11px] tracking-[0.25em] uppercase mb-6 border border-gray-200/60 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)]">The Standard</span>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 tracking-tight">Why Shop With Us?</h2>
-            <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto font-light leading-relaxed">Carefully crafted beauty essentials in beautiful shades for every skin tone — all at affordable prices.</p>
+            <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto font-light leading-relaxed">Carefully selected products at competitive prices — delivered across Ghana from our Accra online mall.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto">
@@ -218,7 +218,7 @@ export default function AboutPage() {
               Ready to shop <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-300 via-white to-blue-200">smarter?</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto font-light">
-              Browse our curated collection of lip glosses, lip liners, lip care, lashes, hair clips and makeup bags. Elevate your everyday.
+              Browse our curated collection of quality products from trusted sellers. Shop smarter from Accra to your doorstep.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link

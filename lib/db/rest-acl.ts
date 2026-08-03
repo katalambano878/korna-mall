@@ -20,7 +20,7 @@ const PUBLIC_READ = new Set([
   "site_settings",
   "reviews",
   "blog_posts",
-  "coupons",
+  // coupons: staff-only — codes must not be enumerable by anon clients
   "pages",
   "navigation_menus",
   "navigation_items",

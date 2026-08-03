@@ -57,7 +57,7 @@ export default function PWAPrompt() {
               <span className="font-serif text-xl font-bold text-gray-800">SF</span>
               </div>
               <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 text-lg truncate">ANAEL</h3>
+              <h3 className="font-bold text-gray-900 text-lg truncate">KORNA MALL</h3>
               <p className="text-sm text-gray-500">Install this app for a faster shopping experience</p>
                 <div className="flex items-center gap-1 mt-1">
                   {[1, 2, 3, 4, 5].map((star) => (

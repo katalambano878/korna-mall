@@ -2,7 +2,7 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Checkout',
-  description: 'Complete your ANAEL Cosmetics order.',
+  description: 'Complete your KORNA MALL order.',
   path: '/checkout',
   noindex: true,
 });

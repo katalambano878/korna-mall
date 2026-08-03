@@ -5,13 +5,13 @@ import { fetchWithTimeout } from '@/lib/fetch-timeout';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-const EMAIL_FROM = process.env.EMAIL_FROM || 'ANAEL <noreply@anaelcosmetics.com>';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'KORNA MALL <noreply@example.com>';
 const BRAND = {
-    name: 'ANAEL',
-    color: '#2563eb',
-    colorLight: '#eff6ff',
-    colorDark: '#064e3b',
-    url: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, ''),
+    name: 'KORNA MALL',
+    color: '#1C1917',
+    colorLight: '#FAF7F2',
+    colorDark: '#C2410C',
+    url: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005').replace(/\/+$/, ''),
 };
 
 // Reusable branded email layout
@@ -231,7 +231,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: process.env.MOOLRE_SMS_SENDER_ID || 'ANAEL',
+                senderid: process.env.MOOLRE_SMS_SENDER_ID || 'KORNA',
                 messages: [
                     {
                         recipient: recipient,

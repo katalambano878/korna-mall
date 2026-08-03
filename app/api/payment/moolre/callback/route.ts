@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendOrderConfirmation } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import {
+    claimOrderConfirmation,
+    markCallbackProcessed,
+    recordCallbackEvent,
+    updatePaymentAttemptStatus,
+} from '@/lib/payments/audit';
+import { mapMoolreStatus } from '@/lib/payments/status';
 
 /**
  * Moolre Callback Payload Structure (from their actual API):
@@ -66,15 +73,24 @@ export async function POST(req: Request) {
         // ============================================================
         const expectedSecret = process.env.MOOLRE_CALLBACK_SECRET;
         const isProd = process.env.NODE_ENV === 'production';
+        let signatureStatus: 'valid' | 'invalid' | 'missing' | 'unknown' = 'unknown';
         if (!expectedSecret) {
             if (isProd) {
                 console.error('[Callback] CRITICAL: MOOLRE_CALLBACK_SECRET not configured — rejecting');
                 return NextResponse.json({ success: false, message: 'Callback not configured' }, { status: 503 });
             }
             console.warn('[Callback] WARNING: MOOLRE_CALLBACK_SECRET not configured (non-production)');
+            signatureStatus = 'missing';
         } else if (!body.secret || body.secret !== expectedSecret) {
             console.error('[Callback] Secret mismatch or missing! Rejecting callback.');
+            await recordCallbackEvent({
+                payload: { keys: Object.keys(body) },
+                signatureStatus: 'invalid',
+                reference: String(body?.data?.externalref || body.externalref || ''),
+            });
             return NextResponse.json({ success: false, message: 'Invalid callback signature' }, { status: 403 });
+        } else {
+            signatureStatus = 'valid';
         }
 
         const data = body.data || {};
@@ -112,12 +128,27 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Missing order reference' }, { status: 400 });
         }
 
+        const { isDuplicate, eventId } = await recordCallbackEvent({
+            externalEventId: String(moolreReference || ''),
+            reference: String(rawExternalRef || merchantOrderRef),
+            payload: {
+                status: apiStatus,
+                txtstatus: txStatus,
+                externalref: rawExternalRef,
+                transactionid: data.transactionid,
+                amount: data.amount,
+            },
+            signatureStatus,
+        });
+        if (isDuplicate) {
+            console.log('[Callback] Duplicate event ignored:', merchantOrderRef);
+            return NextResponse.json({ success: true, message: 'Duplicate callback ignored' });
+        }
+
         // Require BOTH API status and transaction status success.
         // Explicit failure always wins.
-        const apiOk = (apiStatus === 1 || apiStatus === '1');
-        const txOk = (txStatus === 1 || txStatus === '1');
-        const txFailed = (txStatus === 2 || txStatus === '2');
-        const isSuccess = !txFailed && apiOk && txOk;
+        const normalized = mapMoolreStatus(apiStatus, txStatus);
+        const isSuccess = normalized === 'successful';
 
         if (isSuccess) {
             console.log(`[Callback] Payment SUCCESS for Order ${merchantOrderRef}`);
@@ -135,6 +166,13 @@ export async function POST(req: Request) {
 
             if (existingOrder.payment_status === 'paid') {
                 console.log('[Callback] Order already paid, skipping:', merchantOrderRef);
+                await updatePaymentAttemptStatus({
+                    internalReference: String(rawExternalRef || merchantOrderRef),
+                    gatewayReference: String(moolreReference),
+                    status: 'successful',
+                    amountPaid: Number(existingOrder.total),
+                });
+                await markCallbackProcessed(eventId, 'ignored', 'already paid');
                 return NextResponse.json({ success: true, message: 'Order already processed' });
             }
 
@@ -177,9 +215,12 @@ export async function POST(req: Request) {
 
             console.log('[Callback] Order updated! ID:', orderJson.id, '| Status:', orderJson.status);
 
-            // Idempotent notifications: only once
-            const alreadyNotified = orderJson.metadata?.confirmation_sent === true
-                || existingOrder.metadata?.confirmation_sent === true;
+            await updatePaymentAttemptStatus({
+                internalReference: String(rawExternalRef || merchantOrderRef),
+                gatewayReference: String(moolreReference),
+                status: 'successful',
+                amountPaid: callbackAmount,
+            });
 
             try {
                 if (orderJson.email) {
@@ -192,28 +233,21 @@ export async function POST(req: Request) {
                 console.error('[Callback] Customer stats failed:', statsError.message);
             }
 
-            if (!alreadyNotified) {
+            // Atomic claim prevents double SMS/email when callback + verify race
+            const shouldNotify = await claimOrderConfirmation(orderJson.id);
+            if (shouldNotify) {
                 try {
                     console.log('[Callback] Sending notifications for:', orderJson.order_number);
                     await sendOrderConfirmation(orderJson);
-                    await supabaseAdmin
-                        .from('orders')
-                        .update({
-                            metadata: {
-                                ...(orderJson.metadata || {}),
-                                confirmation_sent: true,
-                                confirmation_sent_at: new Date().toISOString(),
-                            }
-                        })
-                        .eq('id', orderJson.id);
                     console.log('[Callback] Notifications sent!');
                 } catch (notifyError: any) {
                     console.error('[Callback] Notification failed:', notifyError.message);
                 }
             } else {
-                console.log('[Callback] Notifications already sent, skipping');
+                console.log('[Callback] Notifications already claimed/sent, skipping');
             }
 
+            await markCallbackProcessed(eventId, 'processed');
             return NextResponse.json({ success: true, message: 'Payment verified and Order Updated' });
 
         } else {
@@ -241,6 +275,14 @@ export async function POST(req: Request) {
                     .eq('order_number', merchantOrderRef)
                     .neq('payment_status', 'paid');
             }
+
+            await updatePaymentAttemptStatus({
+                internalReference: String(rawExternalRef || merchantOrderRef),
+                gatewayReference: String(moolreReference),
+                status: 'failed',
+                failureReason: body.message || 'Payment failed',
+            });
+            await markCallbackProcessed(eventId, 'processed', 'payment not successful');
 
             return NextResponse.json({ success: false, message: 'Payment not successful' });
         }

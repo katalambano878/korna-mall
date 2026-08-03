@@ -90,16 +90,19 @@ export default function ContactPage() {
   const heroTitle = pageContent?.title || 'Get In Touch';
   const heroSubtitle = pageContent?.subtitle || 'Have a question or need assistance?';
   const heroContent = pageContent?.content || 'Send us a message and we\'ll get back to you.';
-  const contactPhone = getSetting('contact_phone') || '0242853166';
+  const contactPhone = getSetting('contact_phone') || '0543832358';
+  const contactPhoneSecondary = '0248782778';
   const contactAddress = getSetting('contact_address') || 'Accra, Ghana';
-  const siteName = getSetting('site_name') || 'ANAEL';
-  const whatsappDigits = contactPhone.replace(/\D/g, '');
+  const siteName = getSetting('site_name') || 'KORNA MALL';
+  const whatsappDigits =
+    (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '') ||
+    `233${contactPhone.replace(/\D/g, '').replace(/^0/, '')}`;
   const whatsappUrl = whatsappDigits ? `https://wa.me/${whatsappDigits}` : '';
 
   const faqs = [
     {
       question: 'What are your delivery times?',
-      answer: 'Standard delivery typically takes 2–5 business days within Ghana, depending on your location. Every order is packaged with care to protect your hair products in transit.'
+      answer: 'Standard delivery typically takes 2–5 business days within Ghana, depending on your location. Every order is packed carefully so it arrives in good condition.'
     },
     {
       question: 'Do you offer international shipping?',
@@ -281,9 +284,12 @@ export default function ContactPage() {
                       <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 group-hover:bg-white transition-colors duration-500">
                         <i className="ri-phone-line text-lg text-gray-400"></i>
                       </div>
-                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                        <a href={`tel:${contactPhone.replace(/\s/g, '')}`} className="font-light hover:text-black transition-colors">{contactPhone}</a>
-                        <a href={whatsappUrl || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
+                      <div className="pt-2 flex flex-col gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                          <a href={`tel:${contactPhone.replace(/\s/g, '')}`} className="font-light hover:text-black transition-colors">{contactPhone}</a>
+                          <a href={`tel:${contactPhoneSecondary.replace(/\s/g, '')}`} className="font-light hover:text-black transition-colors">{contactPhoneSecondary}</a>
+                        </div>
+                        <a href={whatsappUrl || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center self-start text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
                           <i className="ri-whatsapp-fill mr-1.5 text-sm"></i> WhatsApp Us
                         </a>
                       </div>

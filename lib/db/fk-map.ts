@@ -1,4 +1,4 @@
-// Auto-generated FK map for anael — do not hand-edit blindly
+// Auto-generated FK map for korna — do not hand-edit blindly
 export interface FkEdge {
   column: string;
   foreignTable: string;

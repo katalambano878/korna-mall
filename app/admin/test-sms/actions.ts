@@ -45,8 +45,9 @@ export async function testSmsAction(phone: string, message: string, authToken: s
         }
         const recipient = '+' + cleaned;
 
-        // Make API call per Moolre documentation
-        const response = await fetch('https://api.moolre.com/open/sms/send', {
+        const { fetchWithTimeout } = await import('@/lib/fetch-timeout');
+        // Make API call per Moolre documentation (15s timeout)
+        const response = await fetchWithTimeout('https://api.moolre.com/open/sms/send', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -54,7 +55,7 @@ export async function testSmsAction(phone: string, message: string, authToken: s
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: process.env.MOOLRE_SMS_SENDER_ID || 'ANAEL',
+                senderid: process.env.MOOLRE_SMS_SENDER_ID || 'KORNA',
                 messages: [
                     {
                         recipient: recipient,
@@ -62,7 +63,7 @@ export async function testSmsAction(phone: string, message: string, authToken: s
                     }
                 ]
             })
-        });
+        }, 15000);
 
         const responseText = await response.text();
         let result;

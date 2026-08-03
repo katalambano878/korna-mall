@@ -15,18 +15,18 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 const heroSlides = [
   {
     image: '/hero-1.png',
-    tag: 'Anael Cosmetics',
-    heading: <>Your Beauty, <br /><span className="italic font-light text-rose-200">Our Passion</span></>,
-    subtext: 'Lip glosses, lip liners, lip care, lashes, hair clips & makeup bags — crafted for the modern Ghanaian woman.',
+    tag: 'KORNA MALL',
+    heading: <>Your Mall, <br /><span className="italic font-light text-amber-200">Your Way</span></>,
+    subtext: 'Shop fashion, electronics, home essentials, and more — delivered across Accra and Ghana.',
     cta: { text: 'Shop Now', href: '/shop' },
     cta2: { text: 'Our Story', href: '/about' },
     position: 'object-center',
   },
   {
     image: '/hero-2.png',
-    tag: 'Color & Glow',
-    heading: <>Blush & <br /><span className="italic font-light text-pink-200">Radiance</span></>,
-    subtext: 'Build your perfect look with our curated range of blushes, liners, and beauty essentials.',
+    tag: 'Discover More',
+    heading: <>Curated <br /><span className="italic font-light text-amber-100">Collections</span></>,
+    subtext: 'Browse quality products from trusted sellers — all in one convenient online mall.',
     cta: { text: 'Explore', href: '/categories' },
     cta2: { text: 'Shop Now', href: '/shop' },
     position: 'object-center',
@@ -34,8 +34,8 @@ const heroSlides = [
   {
     image: '/hero-3.png',
     tag: 'New Arrivals',
-    heading: <>Fresh <br /><span className="italic font-light text-rose-200">Favorites</span></>,
-    subtext: 'Be the first to try our newest lip glosses and beauty must-haves.',
+    heading: <>Fresh <br /><span className="italic font-light text-amber-200">Favorites</span></>,
+    subtext: 'Be the first to discover our newest products and seasonal picks.',
     cta: { text: 'Shop New', href: '/shop?sort=newest' },
     cta2: { text: 'Learn More', href: '/about' },
     position: 'object-center',
@@ -45,7 +45,7 @@ const heroSlides = [
 export default function HomePage() {
   usePageTitle('');
   const { getSetting } = useCMS();
-  const siteName = getSetting('site_name') || 'ANAEL';
+  const siteName = getSetting('site_name') || 'KORNA MALL';
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [sliderProducts, setSliderProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -74,8 +74,8 @@ export default function HomePage() {
     banners?: Array<{ text: string; active: boolean }>;
   } = {
     hero: {
-      headline: 'Anael Cosmetics — Lip Glosses, Liners, Lashes & More',
-      subheadline: 'Quality beauty products for the modern Ghanaian woman. Lip glosses, lip liners, lip care, lashes, hair clips & makeup bags at unbeatable prices.',
+      headline: 'KORNA MALL — Shop Online in Accra',
+      subheadline: 'Your trusted online mall in Accra. Quality products from fashion to electronics — delivered across Ghana at competitive prices.',
       primaryButtonText: 'Shop Collections',
       primaryButtonLink: '/shop',
       secondaryButtonText: 'Our Story',
@@ -311,7 +311,7 @@ export default function HomePage() {
         {/* Decoration */}
         <div className="absolute bottom-10 right-6 md:right-16 z-20 hidden md:block">
           <div className="text-white/40 text-sm font-light tracking-widest vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
-            ANAEL COSMETICS
+            KORNA MALL
           </div>
         </div>
 

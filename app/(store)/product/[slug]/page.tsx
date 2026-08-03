@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const image = product.product_images?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))?.[0]?.url;
   const description =
     product.description?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) ||
-    `Shop ${product.name} at ANAEL Cosmetics. Premium beauty essentials delivered across Ghana.`;
+    `Shop ${product.name} at KORNA MALL. Quality products delivered across Ghana.`;
 
   const categoryName = getCategoryName(product.categories);
 
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     path: `/product/${product.slug}`,
     keywords: [
       product.name,
-      categoryName || 'cosmetics',
+      categoryName || 'online shopping',
       'buy online Ghana',
     ],
     ogImage: image || '/og-image.png',
@@ -69,7 +69,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           name: product.name,
           description:
             product.description?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() ||
-            `Shop ${product.name} at ANAEL Cosmetics.`,
+            `Shop ${product.name} at KORNA MALL.`,
           image: image || absoluteUrl('/og-image.png'),
           slug: product.slug,
           price: Number(product.price),

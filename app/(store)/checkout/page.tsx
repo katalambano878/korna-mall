@@ -61,11 +61,11 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<any>({});
 
   // Store WhatsApp number (E.164, no +) that receives the orders
-  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '233242853166';
+  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '233543832358';
 
   const buildWhatsAppMessage = (orderNumber: string, trackingNumber: string) => {
     const lines = [
-      `Hello ANAEL Cosmetics! I just placed an order on your website.`,
+      `Hello KORNA MALL! I just placed an order on your website.`,
       ``,
       `*Order:* ${orderNumber}`,
       `*Tracking:* ${trackingNumber}`,
