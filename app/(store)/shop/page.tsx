@@ -243,8 +243,8 @@ function ShopContent() {
       />
 
       {/* Mobile Filter Toggle */}
-      <div className="lg:hidden bg-white border-b border-gray-200 py-4 px-4 sticky top-[72px] z-20">
-        <div className="flex justify-between items-center">
+      <div className="lg:hidden bg-white/95 backdrop-blur-md border-b border-gray-200 py-4 px-4 sticky top-[72px] z-40 shadow-sm isolate">
+        <div className="flex justify-between items-center relative z-10">
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className="flex items-center space-x-2 text-gray-900 font-medium"

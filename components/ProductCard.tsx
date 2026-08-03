@@ -96,8 +96,8 @@ export default function ProductCard({
 
   if (variant === 'showcase') {
     return (
-      <div className="group flex flex-col h-full">
-        <div className="relative aspect-[4/5] rounded-[1.35rem] overflow-hidden bg-[#F3F1EC] mb-3.5">
+      <div className="group relative z-0 flex flex-col h-full">
+        <div className="relative z-0 aspect-[4/5] rounded-[1.35rem] overflow-hidden bg-[#F3F1EC] mb-3.5">
           <Link href={`/product/${slug}`} className="absolute inset-0 block">
             <LazyImage
               src={image}
@@ -108,7 +108,7 @@ export default function ProductCard({
 
           {/* Optional non-sale badge (e.g. Featured) */}
           {badge && !isPreorder && discount === 0 && (
-            <div className="absolute top-3 left-3 z-20">
+            <div className="absolute top-3 left-3 z-[1]">
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 {badge}
               </span>
@@ -116,7 +116,7 @@ export default function ProductCard({
           )}
 
           {isPreorder && (
-            <div className={`absolute top-3 z-20 ${badge && discount === 0 ? 'left-[5.5rem]' : 'left-3'}`}>
+            <div className={`absolute top-3 z-[1] ${badge && discount === 0 ? 'left-[5.5rem]' : 'left-3'}`}>
               <span className="inline-flex items-center bg-brand-accent text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 Pre-order
               </span>
@@ -124,7 +124,7 @@ export default function ProductCard({
           )}
 
           {discount > 0 && (
-            <div className={`absolute top-3 z-20 ${isPreorder ? 'left-[5.5rem]' : 'left-3'}`}>
+            <div className={`absolute top-3 z-[1] ${isPreorder ? 'left-[5.5rem]' : 'left-3'}`}>
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 {discount}% off
               </span>
@@ -132,7 +132,7 @@ export default function ProductCard({
           )}
 
           {/* Vertical action icons */}
-          <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute top-3 right-3 z-[1] flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
             <button
               type="button"
               aria-label="Add to wishlist"
@@ -213,15 +213,15 @@ export default function ProductCard({
   }
 
   return (
-    <div className="group flex flex-col h-full bg-transparent transition-all duration-300">
-      <Link href={`/product/${slug}`} className={`relative block aspect-[4/5] overflow-hidden bg-[#F4F4F4] ${compact ? 'rounded-lg sm:rounded-2xl mb-2 sm:mb-4' : 'rounded-2xl mb-4'}`}>
+    <div className="group relative z-0 flex flex-col h-full bg-transparent transition-all duration-300 isolate">
+      <Link href={`/product/${slug}`} className={`relative z-0 block aspect-[4/5] overflow-hidden bg-[#F4F4F4] ${compact ? 'rounded-lg sm:rounded-2xl mb-2 sm:mb-4' : 'rounded-2xl mb-4'}`}>
         <LazyImage
           src={image}
           alt={name}
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        <div className={`absolute flex flex-col z-20 ${compact ? 'top-1.5 left-1.5 gap-1 sm:top-3 sm:left-3 sm:gap-2' : 'top-3 left-3 gap-2'}`}>
+        <div className={`absolute flex flex-col z-[1] ${compact ? 'top-1.5 left-1.5 gap-1 sm:top-3 sm:left-3 sm:gap-2' : 'top-3 left-3 gap-2'}`}>
           {badge && (
             <span className={`bg-white/90 backdrop-blur-sm text-gray-900 uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
               {badge}
@@ -235,7 +235,7 @@ export default function ProductCard({
         </div>
 
         {!inStock && (
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-[1]">
             <span className={`bg-black/80 text-white rounded-full font-medium tracking-wide shadow-lg ${compact ? 'px-2 py-1 text-[9px] sm:px-4 sm:py-2 sm:text-sm' : 'px-4 py-2 text-sm'}`}>
               Out of Stock
             </span>
@@ -243,7 +243,7 @@ export default function ProductCard({
         )}
 
         {inStock && (
-          <div className={`absolute bottom-3 left-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 lg:translate-y-2 lg:group-hover:translate-y-0 z-20 ${compact ? 'hidden sm:block' : ''}`}>
+          <div className={`absolute bottom-3 left-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 lg:translate-y-2 lg:group-hover:translate-y-0 z-[1] ${compact ? 'hidden sm:block' : ''}`}>
             {hasVariants ? (
               <span className="w-full bg-brand-accent text-white hover:bg-brand-accentDark py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors">
                 <span>Configure</span>
