@@ -10,6 +10,7 @@ import { getColorHex } from '@/components/ProductCard';
 import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
 import PageHero from '@/components/PageHero';
+import { isPreorderProduct } from '@/lib/preorder';
 
 function ShopContent() {
   usePageTitle('Shop All Products');
@@ -189,7 +190,8 @@ function ShopContent() {
               category: p.categories?.name,
               hasVariants,
               minVariantPrice,
-              colorVariants
+              colorVariants,
+              isPreorder: isPreorderProduct(p.metadata),
             };
           });
           // Page 1 replaces the list; later pages append (infinite scroll)

@@ -10,6 +10,7 @@ import ProductSlider, { type SliderProduct } from '@/components/ProductSlider';
 import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import { useCMS } from '@/context/CMSContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { isPreorderProduct } from '@/lib/preorder';
 
 const CATEGORY_IMAGES: Record<string, string> = {
   fashion: '/hero-1.png',
@@ -201,6 +202,7 @@ export default function HomePage() {
       colorVariants,
       category: categoryMatch?.name,
       categorySlug: categoryMatch?.slug,
+      isPreorder: isPreorderProduct(product.metadata),
     };
   };
 

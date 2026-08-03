@@ -11,6 +11,7 @@ import { StructuredData, generateProductSchema, generateBreadcrumbSchema } from 
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { getPreorderShippingNote, isPreorderProduct } from '@/lib/preorder';
 
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
@@ -111,7 +112,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           features: ['Premium Quality', 'Authentic Design'],
           featured: ['Premium Quality', 'Authentic Design'],
           care: 'Handle with care.',
-          preorderShipping: productData.metadata?.preorder_shipping || null
+          preorderShipping: getPreorderShippingNote(productData.metadata),
+          isPreorder: isPreorderProduct(productData.metadata),
         };
 
         // Ensure at least one image/placeholder
@@ -348,6 +350,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     </button>
                   </div>
                   <h1 className="text-3xl md:text-4xl lg:text-[44px] font-serif font-medium text-gray-900 leading-[1.1] tracking-tight">{product.name}</h1>
+                  {product.isPreorder && product.preorderShipping && (
+                    <div className="mt-4 inline-flex items-start gap-2 rounded-xl border border-brand-accent/30 bg-brand-soft px-4 py-3 text-sm text-brand-ink">
+                      <i className="ri-time-line text-brand-accent mt-0.5 shrink-0"></i>
+                      <span>{product.preorderShipping}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center mb-7">

@@ -5,6 +5,7 @@ import { verifyAccessToken } from '@/lib/db/auth';
 import { isPlainPostgres } from '@/lib/db/mode';
 import { computePaymentPlan, type PaymentPlan } from '@/lib/payments/plans';
 import { isGatewayConfigured, parseGateway } from '@/lib/payments/gateways';
+import { getPreorderShippingNote } from '@/lib/preorder';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       let sku: string | null = product.sku || null;
       let stock = Number(product.quantity ?? 0);
       const meta: Record<string, unknown> = {
-        preorder_shipping: product.metadata?.preorder_shipping || null,
+        preorder_shipping: getPreorderShippingNote(product.metadata),
       };
 
       if (line.variantId) {

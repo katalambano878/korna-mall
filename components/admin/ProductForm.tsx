@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { DEFAULT_PREORDER_SHIPPING, normalizeProductMetadata } from '@/lib/preorder';
 
 interface ProductFormProps {
     initialData?: any;
@@ -29,7 +30,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [description, setDescription] = useState(initialData?.description || '');
     const [status, setStatus] = useState(initialData?.status || 'Active');
     const [featured, setFeatured] = useState(initialData?.featured || false);
-    const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
+    const [preorderShipping, setPreorderShipping] = useState(
+        initialData?.metadata?.preorder_shipping || DEFAULT_PREORDER_SHIPPING
+    );
     const [activeTab, setActiveTab] = useState('general');
 
     // Auto-generate SKU function
@@ -298,10 +301,13 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 seo_title: seoTitle,
                 seo_description: metaDescription,
                 tags: (keywords as string).split(',').map((k: string) => k.trim()).filter(Boolean),
-                metadata: {
-                    low_stock_threshold: parseInt(lowStockThreshold) || 5,
-                    preorder_shipping: preorderShipping.trim() || null
-                }
+                metadata: normalizeProductMetadata(
+                    {
+                        ...(initialData?.metadata || {}),
+                        low_stock_threshold: parseInt(lowStockThreshold) || 5,
+                    },
+                    preorderShipping
+                ),
             };
 
             let productId = initialData?.id;
@@ -535,16 +541,18 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Pre-order / Estimated Shipping
+                                    Pre-order delivery note
                                 </label>
                                 <input
                                     type="text"
                                     value={preorderShipping}
                                     onChange={(e) => setPreorderShipping(e.target.value)}
-                                    placeholder="e.g., Ships in 14 days, Available March 15"
+                                    placeholder={DEFAULT_PREORDER_SHIPPING}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Leave empty if product ships immediately. Otherwise, enter estimated shipping time.</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    All products on KORNA MALL are pre-order. Adjust the estimated arrival text if this item differs from the default.
+                                </p>
                             </div>
                         </div>
                     )}

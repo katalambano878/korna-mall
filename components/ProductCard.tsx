@@ -59,6 +59,8 @@ interface ProductCardProps {
   compact?: boolean;
   /** Best-sellers showcase layout (matches homepage design) */
   variant?: 'default' | 'showcase';
+  /** Pre-order item (KORNA MALL default) */
+  isPreorder?: boolean;
 }
 
 export default function ProductCard({
@@ -80,6 +82,7 @@ export default function ProductCard({
   category,
   compact = false,
   variant = 'default',
+  isPreorder = false,
 }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist } = useWishlist();
@@ -102,9 +105,18 @@ export default function ProductCard({
             />
           </Link>
 
-          {/* Discount badge */}
-          {(discount > 0 || badge) && (
+          {/* Pre-order badge */}
+          {isPreorder && (
             <div className="absolute top-3 left-3 z-20">
+              <span className="inline-flex items-center bg-brand-accent text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
+                Pre-order
+              </span>
+            </div>
+          )}
+
+          {/* Discount badge */}
+          {(discount > 0 || (badge && !isPreorder)) && (
+            <div className={`absolute top-3 z-20 ${isPreorder ? 'left-[5.5rem]' : 'left-3'}`}>
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 {discount > 0 ? `${discount}% off` : badge}
               </span>
