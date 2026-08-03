@@ -194,7 +194,7 @@ export default function HomePage() {
       image: product.product_images?.[0]?.url || 'https://via.placeholder.com/400x500',
       rating: product.rating_avg || 5,
       reviewCount: product.review_count || 0,
-      badge: product.featured ? 'Featured' : undefined,
+      badge: undefined,
       inStock: effectiveStock > 0,
       maxStock: effectiveStock || 50,
       moq: product.moq || 1,

@@ -106,15 +106,6 @@ export default function ProductCard({
             />
           </Link>
 
-          {/* Optional non-sale badge (e.g. Featured) */}
-          {badge && discount === 0 && (
-            <div className="absolute top-3 left-3 z-[1]">
-              <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
-                {badge}
-              </span>
-            </div>
-          )}
-
           {discount > 0 && (
             <div className="absolute top-3 left-3 z-[1]">
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
@@ -211,18 +202,13 @@ export default function ProductCard({
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        <div className={`absolute flex flex-col z-[1] ${compact ? 'top-1.5 left-1.5 gap-1 sm:top-3 sm:left-3 sm:gap-2' : 'top-3 left-3 gap-2'}`}>
-          {badge && (
-            <span className={`bg-white/90 backdrop-blur-sm text-gray-900 uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
-              {badge}
-            </span>
-          )}
-          {discount > 0 && (
+        {discount > 0 && (
+          <div className={`absolute z-[1] ${compact ? 'top-1.5 left-1.5 sm:top-3 sm:left-3' : 'top-3 left-3'}`}>
             <span className={`bg-red-500/90 backdrop-blur-sm text-white uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
               -{discount}%
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {!inStock && (
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-[1]">
