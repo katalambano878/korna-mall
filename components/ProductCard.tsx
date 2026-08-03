@@ -106,10 +106,10 @@ export default function ProductCard({
             />
           </Link>
 
-          {discount > 0 && (
+          {(isPreorder || discount > 0) && (
             <div className="absolute top-3 left-3 z-[1]">
-              <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
-                {discount}% off
+              <span className="inline-flex items-center bg-brand-accent text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
+                {isPreorder ? 'Pre-order' : `${discount}% off`}
               </span>
             </div>
           )}
@@ -176,15 +176,10 @@ export default function ProductCard({
           </h3>
         </Link>
 
-        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-auto">
+        <div className="flex items-baseline gap-2 mt-auto">
           <span className="text-[15px] font-semibold text-brand-accent">
             {hasVariants && minVariantPrice ? `From ${formatPrice(minVariantPrice)}` : formatPrice(price)}
           </span>
-          {isPreorder && (
-            <span className="inline-flex items-center bg-brand-accent/10 text-brand-accent text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-              Pre-order
-            </span>
-          )}
           {discount > 0 && originalPrice != null && (
             <span className="text-[13px] text-stone-400 line-through">{formatPrice(originalPrice)}</span>
           )}
@@ -202,10 +197,10 @@ export default function ProductCard({
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {discount > 0 && (
+        {(isPreorder || discount > 0) && (
           <div className={`absolute z-[1] ${compact ? 'top-1.5 left-1.5 sm:top-3 sm:left-3' : 'top-3 left-3'}`}>
-            <span className={`bg-red-500/90 backdrop-blur-sm text-white uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
-              -{discount}%
+            <span className={`bg-brand-accent text-white uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
+              {isPreorder ? 'Pre-order' : `-${discount}%`}
             </span>
           </div>
         )}
@@ -270,16 +265,11 @@ export default function ProductCard({
           </div>
         )}
 
-        <div className={`flex items-center mt-auto flex-wrap ${compact ? 'gap-x-1.5 gap-y-1 sm:gap-x-2.5' : 'gap-x-2.5 gap-y-1'}`}>
+        <div className={`flex items-center mt-auto ${compact ? 'flex-wrap gap-x-1.5 sm:space-x-2.5 sm:flex-nowrap' : 'space-x-2.5'}`}>
           {hasVariants && minVariantPrice ? (
             <span className={`text-gray-900 font-bold tracking-tight ${compact ? 'text-[11px] sm:text-[15px]' : 'text-[15px]'}`}>From {formatPrice(minVariantPrice)}</span>
           ) : (
             <span className={`text-gray-900 font-bold tracking-tight ${compact ? 'text-[11px] sm:text-[15px]' : 'text-[15px]'}`}>{formatPrice(price)}</span>
-          )}
-          {isPreorder && (
-            <span className={`inline-flex items-center bg-brand-accent/10 text-brand-accent font-semibold rounded-full ${compact ? 'text-[9px] px-1.5 py-0.5 sm:text-[11px] sm:px-2.5' : 'text-[11px] px-2.5 py-0.5'}`}>
-              Pre-order
-            </span>
           )}
           {discount > 0 && originalPrice != null && (
             <span className={`text-gray-500 line-through decoration-gray-300 ${compact ? 'text-[9px] sm:text-[13px]' : 'text-[13px]'}`}>{formatPrice(originalPrice)}</span>
