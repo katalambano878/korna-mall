@@ -40,7 +40,7 @@ export default function WishlistPage() {
           <div className="flex items-center justify-between">
             <div>
               <nav className="flex items-center space-x-2 text-sm mb-2">
-                <Link href="/" className="text-gray-600 hover:text-blue-700 transition-colors">Home</Link>
+                <Link href="/" className="text-gray-600 hover:text-brand transition-colors">Home</Link>
                 <i className="ri-arrow-right-s-line text-gray-400"></i>
                 <span className="text-gray-900 font-medium">Wishlist</span>
               </nav>
@@ -51,7 +51,7 @@ export default function WishlistPage() {
             {wishlistItems.length > 0 && (
               <button
                 onClick={addAllToCart}
-                className="bg-gray-900 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                className="bg-brand-accent hover:bg-brand-accentDark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
               >
                 Add All to Cart
               </button>
@@ -68,7 +68,7 @@ export default function WishlistPage() {
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Your wishlist is empty</h2>
             <p className="text-gray-600 mb-8 text-lg">Save your favourite items here to easily find them later</p>
-            <Link href="/shop" className="inline-block bg-gray-900 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap">
+            <Link href="/shop" className="inline-block bg-brand-accent hover:bg-brand-accentDark text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap">
               Explore Products
             </Link>
           </div>
@@ -98,8 +98,8 @@ export default function WishlistPage() {
           <div className="relative bg-white p-12 sm:p-20 rounded-[3rem] border border-gray-100 shadow-[0_8px_40px_rgba(0,0,0,0.03)] text-center overflow-hidden group transition-all duration-700 hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
 
             {/* Ambient Subtle Lighting */}
-            <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-50/80 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-100/60 transition-colors duration-1000"></div>
-            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gray-50 rounded-full blur-[100px] pointer-events-none group-hover:bg-indigo-50/50 transition-colors duration-1000"></div>
+            <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-soft/80 rounded-full blur-[100px] pointer-events-none group-hover:bg-brand-soft/60 transition-colors duration-1000"></div>
+            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gray-50 rounded-full blur-[100px] pointer-events-none group-hover:bg-brand-soft/50 transition-colors duration-1000"></div>
 
             {/* Inner Content */}
             <div className="relative z-10 flex flex-col items-center">

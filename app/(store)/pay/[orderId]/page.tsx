@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
+type Gateway = { id: string; label: string };
+
 export default function PaymentPage() {
   usePageTitle('Complete Payment');
   const params = useParams();
@@ -15,6 +17,19 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gateways, setGateways] = useState<Gateway[]>([]);
+  const [gateway, setGateway] = useState('');
+
+  useEffect(() => {
+    fetch('/api/payment/gateways')
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.gateways || [];
+        setGateways(list);
+        if (list[0]?.id) setGateway(list[0].id);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -52,21 +67,28 @@ export default function PaymentPage() {
     }
   }, [orderId, router]);
 
+  const isBalance =
+    order?.payment_status === 'partially_paid' || Number(order?.amount_paid || 0) > 0;
+  const chargeAmount = isBalance
+    ? Number(order?.balance_due ?? 0)
+    : Number(order?.amount_due_now ?? order?.total ?? 0);
+
   const handlePayNow = async () => {
-    if (!order) return;
+    if (!order || !gateway) return;
 
     setProcessing(true);
     setError(null);
 
     try {
-      const paymentRes = await fetch('/api/payment/moolre', {
+      const paymentRes = await fetch('/api/payment/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: order.order_number,
-          amount: order.total,
-          customerEmail: order.email
-        })
+          orderId: order.id,
+          gateway,
+          purpose: isBalance ? 'balance' : 'checkout',
+          customerEmail: order.email,
+        }),
       });
 
       const paymentResult = await paymentRes.json();
@@ -75,9 +97,7 @@ export default function PaymentPage() {
         throw new Error(paymentResult.message || 'Payment initialization failed');
       }
 
-      // Redirect to Moolre payment page
       window.location.href = paymentResult.url;
-
     } catch (err: any) {
       console.error('Payment error:', err);
       setError(err.message || 'Failed to initialize payment. Please try again.');
@@ -87,9 +107,9 @@ export default function PaymentPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen bg-brand-soft flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-700 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-brand/30 border-t-brand rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading order details...</p>
         </div>
       </main>
@@ -98,16 +118,16 @@ export default function PaymentPage() {
 
   if (error && !order) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <main className="min-h-screen bg-brand-soft flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 mx-auto mb-6 bg-red-50 rounded-full flex items-center justify-center">
             <i className="ri-error-warning-line text-4xl text-red-500"></i>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Order Not Found</h1>
+          <h1 className="text-2xl font-bold text-brand-ink mb-3">Order Not Found</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <Link
             href="/"
-            className="inline-flex items-center px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-brand-accent hover:bg-brand-accentDark text-white rounded-lg font-semibold transition-colors"
           >
             <i className="ri-home-line mr-2"></i>
             Go to Homepage
@@ -121,48 +141,72 @@ export default function PaymentPage() {
   const customerName = order?.metadata?.first_name || shippingAddress.firstName || 'Customer';
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
+    <main className="min-h-screen bg-brand-soft py-12 px-4">
       <div className="max-w-lg mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <span className="text-2xl font-['Pacifico'] text-blue-700">KORNA MALL</span>
+            <span className="text-2xl font-['Pacifico'] text-brand">KORNA MALL</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Complete Your Payment</h1>
-          <p className="text-gray-600 mt-2">Hi {customerName}, your order is waiting for payment.</p>
+          <h1 className="text-2xl font-bold text-brand-ink">
+            {isBalance ? 'Pay Remaining Balance' : 'Complete Your Payment'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Hi {customerName},{' '}
+            {isBalance
+              ? 'pay the rest when your goods are ready / arrive.'
+              : 'your order is waiting for payment.'}
+          </p>
         </div>
 
-        {/* Order Summary Card */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
             <span className="text-sm text-gray-500">Order Number</span>
-            <span className="font-semibold text-gray-900">{order?.order_number}</span>
+            <span className="font-semibold text-brand-ink">{order?.order_number}</span>
           </div>
 
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="text-gray-900">GH₵ {order?.subtotal?.toFixed(2)}</span>
+              <span className="text-gray-600">Order total</span>
+              <span className="text-brand-ink">GH₵ {Number(order?.total || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Shipping</span>
-              <span className="text-gray-900">GH₵ {order?.shipping_total?.toFixed(2)}</span>
-            </div>
-            {order?.discount_total > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Discount</span>
-                <span className="text-green-600">-GH₵ {order?.discount_total?.toFixed(2)}</span>
-              </div>
+            {order?.payment_plan === 'deposit_50' && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Plan</span>
+                  <span className="text-brand font-medium">50% deposit</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Already paid</span>
+                  <span className="text-brand-ink">GH₵ {Number(order?.amount_paid || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Balance due</span>
+                  <span className="text-brand-ink">GH₵ {Number(order?.balance_due || 0).toFixed(2)}</span>
+                </div>
+              </>
             )}
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-            <span className="text-lg font-semibold text-gray-900">Total</span>
-            <span className="text-2xl font-bold text-blue-700">GH₵ {order?.total?.toFixed(2)}</span>
+            <span className="text-lg font-semibold text-brand-ink">Pay now</span>
+            <span className="text-2xl font-bold text-brand-accent">GH₵ {chargeAmount.toFixed(2)}</span>
           </div>
         </div>
 
-        {/* Payment Status */}
+        {order?.payment_status === 'partially_paid' && (
+          <div className="bg-brand-soft border border-brand/20 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <i className="ri-checkbox-circle-line text-xl text-brand mt-0.5"></i>
+              <div>
+                <p className="text-sm font-semibold text-brand">Deposit received</p>
+                <p className="text-sm text-gray-700 mt-1">
+                  Pay the remaining balance online, or settle when your goods arrive.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {order?.payment_status === 'pending' && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
@@ -191,17 +235,40 @@ export default function PaymentPage() {
           </div>
         )}
 
+        {gateways.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-4 mb-6 space-y-3">
+            <p className="text-sm font-semibold text-brand-ink">Pay with</p>
+            {gateways.map((g) => (
+              <label
+                key={g.id}
+                className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer ${
+                  gateway === g.id ? 'border-brand bg-brand-soft' : 'border-gray-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="gateway"
+                  value={g.id}
+                  checked={gateway === g.id}
+                  onChange={() => setGateway(g.id)}
+                  className="text-brand"
+                />
+                <span className="text-sm font-medium text-brand-ink">{g.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
-        {/* Pay Button */}
         <button
           onClick={handlePayNow}
-          disabled={processing}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-xl font-semibold text-lg transition-colors disabled:opacity-70 flex items-center justify-center cursor-pointer"
+          disabled={processing || !gateway || chargeAmount <= 0}
+          className="w-full bg-brand-accent hover:bg-brand-accentDark text-white py-4 rounded-xl font-semibold text-lg transition-colors disabled:opacity-70 flex items-center justify-center cursor-pointer"
         >
           {processing ? (
             <>
@@ -214,23 +281,21 @@ export default function PaymentPage() {
           ) : (
             <>
               <i className="ri-secure-payment-line mr-2"></i>
-              Pay GH₵ {order?.total?.toFixed(2)} with Mobile Money
+              Pay GH₵ {chargeAmount.toFixed(2)} Now
             </>
           )}
         </button>
 
-        {/* Security Note */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500 flex items-center justify-center">
             <i className="ri-lock-line mr-1"></i>
-            Secure payment powered by Moolre
+            Secure online payment via Moolre or Hubtel
           </p>
         </div>
 
-        {/* Help Link */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Having issues? <Link href="/contact" className="text-blue-700 hover:underline">Contact Support</Link>
+            Having issues? <Link href="/contact" className="text-brand hover:underline">Contact Support</Link>
           </p>
         </div>
       </div>

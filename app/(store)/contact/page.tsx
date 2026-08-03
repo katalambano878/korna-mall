@@ -124,7 +124,7 @@ export default function ContactPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 relative">
         {/* Subtle page background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-50/40 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-soft/40 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
         <div className="grid lg:grid-cols-12 gap-16 lg:gap-24">
 
@@ -141,7 +141,7 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="name" className="block text-[13px] uppercase tracking-wider font-semibold text-gray-500">
-                    Full Name <span className="text-blue-500">*</span>
+                    Full Name <span className="text-brand">*</span>
                 </label>
                 <input
                   type="text"
@@ -157,7 +157,7 @@ export default function ContactPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-[13px] uppercase tracking-wider font-semibold text-gray-500">
-                    Email Address <span className="text-blue-500">*</span>
+                    Email Address <span className="text-brand">*</span>
                 </label>
                 <input
                   type="email"
@@ -189,7 +189,7 @@ export default function ContactPage() {
 
               <div className="space-y-2">
                 <label htmlFor="subject" className="block text-[13px] uppercase tracking-wider font-semibold text-gray-500">
-                  Subject <span className="text-blue-500">*</span>
+                  Subject <span className="text-brand">*</span>
                 </label>
                 <input
                   type="text"
@@ -206,7 +206,7 @@ export default function ContactPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
                   <label htmlFor="message" className="block text-[13px] uppercase tracking-wider font-semibold text-gray-500">
-                    Message <span className="text-blue-500">*</span>
+                    Message <span className="text-brand">*</span>
                 </label>
                   <span className="text-[11px] text-gray-400 font-medium">{formData.message.length}/500</span>
                 </div>
@@ -244,7 +244,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || verifying}
-                className="group relative w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-gray-900 text-white rounded-full font-medium overflow-hidden transition-all duration-300 hover:shadow-[0_8px_25px_rgba(17,24,39,0.3)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="group relative w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-brand-accent hover:bg-brand-accentDark text-white rounded-full font-medium overflow-hidden transition-all duration-300 hover:shadow-[0_8px_25px_rgba(17,24,39,0.3)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                 <span className="relative flex items-center gap-2">
@@ -267,7 +267,7 @@ export default function ContactPage() {
             {(contactPhone || contactAddress) && (
               <div className="relative group overflow-hidden bg-white border border-gray-100 rounded-3xl p-8 sm:p-10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] transition-all duration-500 mb-12">
                 {/* Ethereal Glow */}
-                <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute top-0 right-0 w-48 h-48 bg-brand-soft rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
 
                 <h3 className="font-serif text-xl font-bold text-gray-900 mb-6 tracking-wide relative z-10">{siteName}</h3>
                 <div className="space-y-5 relative z-10">

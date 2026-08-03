@@ -68,7 +68,7 @@ interface CMSContextType {
 const defaultSettings: SiteSettings = {
     site_name: 'KORNA MALL',
     site_tagline: 'Your online mall in Accra — shop everyday essentials with delivery across Ghana.',
-    site_logo: '/logo.svg',
+    site_logo: '/logo.png',
     contact_email: '',
     contact_phone: '0543832358',
     contact_address: 'Accra, Ghana',
@@ -78,8 +78,8 @@ const defaultSettings: SiteSettings = {
     social_tiktok: '',
     social_snapchat: '',
     social_youtube: '',
-    primary_color: '#1C1917',
-    secondary_color: '#C2410C',
+    primary_color: '#153B6D',
+    secondary_color: '#F28C28',
     currency: 'GHS',
     currency_symbol: 'GH₵',
 };
@@ -99,7 +99,7 @@ export function CMSProvider({ children }: { children: ReactNode }) {
     const [settings, setSettings] = useState<SiteSettings>({
         site_name: 'KORNA MALL',
         site_tagline: 'Your online mall in Accra — shop everyday essentials with delivery across Ghana.',
-        site_logo: '/logo.svg',
+        site_logo: '/logo.png',
         contact_email: '',
         contact_phone: '0543832358',
         contact_address: 'Accra, Ghana',
@@ -109,8 +109,8 @@ export function CMSProvider({ children }: { children: ReactNode }) {
         social_tiktok: '',
         social_snapchat: '',
         social_youtube: '',
-        primary_color: '#1C1917',
-        secondary_color: '#C2410C',
+        primary_color: '#153B6D',
+        secondary_color: '#F28C28',
         currency: 'GHS',
         currency_symbol: 'GH₵',
     });

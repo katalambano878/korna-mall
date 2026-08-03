@@ -19,6 +19,8 @@ export interface SliderProduct {
   hasVariants?: boolean;
   minVariantPrice?: number;
   colorVariants?: ColorVariant[];
+  category?: string;
+  categorySlug?: string;
 }
 
 interface ProductSliderProps {

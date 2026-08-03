@@ -101,3 +101,18 @@ Do **not** restore another store’s customer/order data into `store_korna` unle
 - Phones: `0543832358`, `0248782778`
 - WhatsApp: `233543832358`
 - Location: Accra, Ghana
+
+---
+
+## Related database audit docs (2026-08-03)
+
+- `DATABASE_AUDIT_AND_REPAIR_REPORT.md`
+- `DATABASE_SCHEMA_REFERENCE.md`
+- `MIGRATION_STATUS_REPORT.md`
+- `SUPABASE_TO_POSTGRES_DATABASE_REPORT.md`
+- `PAYMENT_DATABASE_AUDIT.md`
+- `DATABASE_PERFORMANCE_REPORT.md`
+- `DATABASE_RECOVERY_GUIDE.md`
+
+Apply latest corrective SQL: `supabase/migrations/20260803120000_db_health_repair.sql`  
+Smoke: `npm run db:schema-smoke` (requires `DATABASE_URL`)

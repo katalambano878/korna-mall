@@ -148,8 +148,8 @@ export default function SignupPage() {
     return (
       <main className="min-h-screen bg-[#FDFDFD] relative flex items-center justify-center py-16 px-4 sm:px-6 overflow-hidden">
         {/* Ethereal Background Glows */}
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-50/60 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-indigo-50/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3"></div>
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-brand-soft/60 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-brand-soft/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3"></div>
 
         <div className="max-w-md w-full text-center relative z-10 bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] border border-white p-10 sm:p-14">
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
@@ -172,8 +172,8 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen bg-[#FDFDFD] relative flex items-center justify-center py-16 px-4 sm:px-6 overflow-hidden">
       {/* Ethereal Background Glows */}
-      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-50/60 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2 -z-10"></div>
-      <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-indigo-50/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3 -z-10"></div>
+      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-brand-soft/60 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2 -z-10"></div>
+      <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-brand-soft/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3 -z-10"></div>
 
       <div className="max-w-[460px] w-full relative z-10">
         <div className="text-center mb-10">
@@ -350,7 +350,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="group relative w-full flex items-center justify-center px-8 py-4 bg-gray-900 text-white rounded-2xl font-medium overflow-hidden transition-all duration-300 hover:shadow-[0_8px_25px_rgba(17,24,39,0.3)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-2"
+              className="group relative w-full flex items-center justify-center px-8 py-4 bg-brand-accent hover:bg-brand-accentDark text-white rounded-2xl font-medium overflow-hidden transition-all duration-300 hover:shadow-[0_8px_25px_rgba(17,24,39,0.3)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-2"
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
               <span className="relative flex items-center gap-2">

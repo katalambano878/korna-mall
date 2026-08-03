@@ -76,6 +76,9 @@ export default function AdminOrdersPage() {
           total,
           status,
           payment_status,
+          payment_plan,
+          amount_paid,
+          balance_due,
           payment_method,
           shipping_method,
           created_at,
@@ -102,9 +105,15 @@ export default function AdminOrdersPage() {
       });
       setAvailableProducts(Array.from(productNames).sort());
 
-      // Separate confirmed (paid) from abandoned (pending payment)
-      const confirmedOrders = ordersData?.filter(o => o.payment_status === 'paid') || [];
-      const abandonedOrders = ordersData?.filter(o => o.payment_status !== 'paid') || [];
+      // Confirmed = money received (full or deposit). Abandoned = no payment yet.
+      const confirmedOrders =
+        ordersData?.filter(
+          (o) => o.payment_status === 'paid' || o.payment_status === 'partially_paid'
+        ) || [];
+      const abandonedOrders =
+        ordersData?.filter(
+          (o) => o.payment_status !== 'paid' && o.payment_status !== 'partially_paid'
+        ) || [];
       
       setConfirmedCount(confirmedOrders.length);
       setAbandonedCount(abandonedOrders.length);
@@ -129,9 +138,9 @@ export default function AdminOrdersPage() {
 
   const statusColors: Record<string, string> = {
     'pending': 'bg-amber-100 text-amber-700 border-amber-200',
-    'processing': 'bg-blue-100 text-blue-700 border-blue-200',
+    'processing': 'bg-brand-soft text-brand border-brand/30',
     'shipped': 'bg-purple-100 text-purple-700 border-purple-200',
-    'delivered': 'bg-blue-100 text-blue-700 border-blue-200',
+    'delivered': 'bg-brand-soft text-brand border-brand/30',
     'cancelled': 'bg-red-100 text-red-700 border-red-200',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
@@ -341,7 +350,7 @@ export default function AdminOrdersPage() {
           </button>
           <button
             onClick={handleExportAll}
-            className="flex-1 md:flex-none bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer shadow-sm flex items-center justify-center"
+            className="flex-1 md:flex-none bg-brand hover:bg-brand-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer shadow-sm flex items-center justify-center"
           >
             <i className="ri-download-line mr-2"></i>
             Export
@@ -355,7 +364,7 @@ export default function AdminOrdersPage() {
           onClick={() => { setOrderViewTab('confirmed'); setStatusFilter('all'); }}
           className={`px-6 py-3 font-semibold text-sm border-b-2 transition-colors cursor-pointer ${
             orderViewTab === 'confirmed'
-              ? 'border-blue-700 text-blue-700'
+              ? 'border-brand text-brand'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -382,7 +391,7 @@ export default function AdminOrdersPage() {
             key={stat.status}
             onClick={() => setStatusFilter(stat.status)}
             className={`p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${statusFilter === stat.status
-              ? 'border-blue-700 bg-blue-50'
+              ? 'border-brand bg-brand-soft'
               : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
           >
@@ -419,7 +428,7 @@ export default function AdminOrdersPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by order ID, customer name, or email..."
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                 />
               </div>
             </div>
@@ -435,7 +444,7 @@ export default function AdminOrdersPage() {
               <select
                 value={productFilter}
                 onChange={(e) => setProductFilter(e.target.value)}
-                className="px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium cursor-pointer"
+                className="px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand font-medium cursor-pointer"
               >
                 <option value="all">All Products</option>
                 {availableProducts.map((name) => (
@@ -445,7 +454,7 @@ export default function AdminOrdersPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium cursor-pointer"
+                className="px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand font-medium cursor-pointer"
               >
                 <option value="date">Sort by Date</option>
                 <option value="total">Sort by Total</option>
@@ -484,14 +493,14 @@ export default function AdminOrdersPage() {
         </div>
 
         {selectedOrders.length > 0 && (
-          <div className="p-4 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
-            <p className="text-blue-800 font-semibold">
+          <div className="p-4 bg-brand-soft border-b border-brand/30 flex items-center justify-between">
+            <p className="text-brand font-semibold">
               {selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected
             </p>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleBulkAction('Mark as Processing', 'processing')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Mark Processing
               </button>
@@ -521,7 +530,7 @@ export default function AdminOrdersPage() {
                     type="checkbox"
                     checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-700 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand cursor-pointer"
                   />
                 </th>
                 <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700">Order ID</th>
@@ -538,7 +547,7 @@ export default function AdminOrdersPage() {
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-gray-500">
-                    <i className="ri-loader-4-line animate-spin text-3xl text-blue-700"></i>
+                    <i className="ri-loader-4-line animate-spin text-3xl text-brand"></i>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
@@ -558,11 +567,11 @@ export default function AdminOrdersPage() {
                         type="checkbox"
                         checked={selectedOrders.includes(order.id)}
                         onChange={() => handleSelectOrder(order.id)}
-                        className="w-4 h-4 text-blue-700 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand cursor-pointer"
                       />
                     </td>
                     <td className="py-4 px-4">
-                      <Link href={`/admin/orders/${order.id}`} className="text-blue-700 hover:text-blue-800 font-semibold whitespace-nowrap cursor-pointer">
+                      <Link href={`/admin/orders/${order.id}`} className="text-brand hover:text-brand font-semibold whitespace-nowrap cursor-pointer">
                         {order.order_number || order.id.substring(0, 8)}
                       </Link>
                     </td>
@@ -579,10 +588,23 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="py-4 px-4 text-gray-700 text-sm whitespace-nowrap">{formatDate(order.created_at)}</td>
                     <td className="py-4 px-4 text-gray-700">{getItemCount(order)}</td>
-                    <td className="py-4 px-4 font-semibold text-gray-900 whitespace-nowrap">GH₵ {order.total?.toFixed(2) || '0.00'}</td>
+                    <td className="py-4 px-4 font-semibold text-gray-900 whitespace-nowrap">
+                      <div>GH₵ {order.total?.toFixed(2) || '0.00'}</div>
+                      {order.payment_status === 'partially_paid' && (
+                        <div className="text-xs text-brand-accent font-medium mt-0.5">
+                          Paid GH₵ {Number(order.amount_paid || 0).toFixed(2)} · Bal GH₵ {Number(order.balance_due || 0).toFixed(2)}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-4 px-4 text-sm whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="text-gray-700">{order.payment_method || 'N/A'}</span>
+                        {order.payment_plan === 'deposit_50' && (
+                          <span className="text-xs text-brand mt-0.5">50% plan</span>
+                        )}
+                        {order.payment_status === 'partially_paid' && (
+                          <span className="text-xs mt-1 text-brand-accent">Partially paid</span>
+                        )}
                         {orderViewTab === 'abandoned' && (
                           <span className={`text-xs mt-1 ${order.payment_status === 'failed' ? 'text-red-600' : 'text-amber-600'}`}>
                             {order.payment_status === 'failed' ? 'Failed' : 'Pending'}
@@ -599,7 +621,7 @@ export default function AdminOrdersPage() {
                       <div className="flex items-center space-x-2">
                         <Link
                           href={`/admin/orders/${order.id}`}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand hover:bg-brand-soft rounded-lg transition-colors cursor-pointer"
                           title="View Order"
                         >
                           <i className="ri-eye-line text-lg w-4 h-4 flex items-center justify-center"></i>
@@ -620,7 +642,7 @@ export default function AdminOrdersPage() {
                         )}
                         <button
                           onClick={() => handlePrintInvoice(order.id)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand hover:bg-brand-soft rounded-lg transition-colors cursor-pointer"
                           title="Print Invoice"
                         >
                           <i className="ri-printer-line text-lg w-4 h-4 flex items-center justify-center"></i>

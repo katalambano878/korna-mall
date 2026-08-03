@@ -7,6 +7,16 @@ import MiniCart from './MiniCart';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
+
+const TOP_MARQUEE = [
+  'Free delivery on orders over GHS 500 within Accra',
+  'Secure payments via Mobile Money and Card',
+  'New arrivals every week at KORNA MALL',
+  'Fashion  |  Beauty  |  Home  |  Electronics',
+  'WhatsApp support: 054 383 2358',
+  'Shop online - delivered across Ghana',
+];
+
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -64,11 +74,25 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/70 backdrop-blur-3xl sticky top-0 z-50 border-b border-black/[0.04] shadow-[0_20px_40px_-24px_rgba(0,0,0,0.02)] transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] supports-[backdrop-filter]:bg-white/50">
-        <div className="safe-area-top" />
+      <div className="sticky top-0 z-50">
+        <div className="safe-area-top bg-brand" />
+        <div className="overflow-hidden border-b border-brand-accent/25 bg-brand">
+          <div className="flex animate-marquee whitespace-nowrap py-1.5 sm:py-2">
+            {[...TOP_MARQUEE, ...TOP_MARQUEE].map((text, index) => (
+              <span
+                key={`${text}-${index}`}
+                className="mx-6 sm:mx-10 inline-flex items-center gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.12em] uppercase text-white"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-accent shadow-[0_0_8px_rgba(242,140,40,0.65)]" />
+                {text}
+              </span>
+            ))}
+          </div>
+        </div>
+      <header className="bg-white/70 backdrop-blur-3xl border-b border-black/[0.04] shadow-[0_20px_40px_-24px_rgba(0,0,0,0.02)] transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] supports-[backdrop-filter]:bg-white/50">
         <nav aria-label="Main navigation" className="relative">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="h-[5.5rem] grid grid-cols-[auto_1fr_auto] items-center gap-4">
+            <div className="h-[4.25rem] grid grid-cols-[auto_1fr_auto] items-center gap-4">
 
               {/* Left: Mobile Menu Trigger (Mobile) & Logo */}
               <div className="flex items-center gap-2 sm:gap-4">
@@ -84,7 +108,7 @@ export default function Header() {
                   className="flex items-center select-none opacity-90 transition-opacity duration-500 hover:opacity-100"
                   aria-label="Go to homepage"
                 >
-                  <Image src="/logo.svg" alt={siteName} width={180} height={56} className="h-9 w-auto md:h-11 object-contain object-left" priority />
+                  <Image src="/logo.png" alt={siteName} width={180} height={56} className="h-8 w-auto md:h-9 object-contain object-left" priority />
                 </Link>
               </div>
 
@@ -171,6 +195,7 @@ export default function Header() {
           </div>
         </nav>
       </header>
+      </div>
 
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 sm:px-6">
@@ -216,7 +241,7 @@ export default function Header() {
           <div className="absolute top-0 left-0 bottom-0 w-4/5 max-w-xs bg-white shadow-xl flex flex-col animate-in slide-in-from-left duration-300">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
-                <Image src="/logo.svg" alt={siteName} width={150} height={47} className="h-8 w-auto object-contain object-left" />
+                <Image src="/logo.png" alt={siteName} width={150} height={47} className="h-8 w-auto object-contain object-left" />
               </Link>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -238,7 +263,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block px-4 py-3 text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
+                  className="block px-4 py-3 text-lg font-medium text-gray-700 hover:bg-brand-soft hover:text-brand rounded-lg transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}

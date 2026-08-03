@@ -9,6 +9,9 @@ import {
     updatePaymentAttemptStatus,
 } from '@/lib/payments/audit';
 import { mapMoolreStatus } from '@/lib/payments/status';
+import { applyOrderPayment } from '@/lib/payments/apply-payment';
+import { query } from '@/lib/db/pool';
+import { isPlainPostgres } from '@/lib/db/mode';
 
 /**
  * Moolre Callback Payload Structure (from their actual API):
@@ -155,7 +158,7 @@ export async function POST(req: Request) {
 
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
                 .from('orders')
-                .select('id, order_number, payment_status, total, metadata')
+                .select('id, order_number, payment_status, total, amount_due_now, amount_paid, balance_due, payment_plan, metadata')
                 .eq('order_number', merchantOrderRef)
                 .single();
 
@@ -182,29 +185,59 @@ export async function POST(req: Request) {
 
             if (callbackAmount === null || !Number.isFinite(callbackAmount)) {
                 console.error('[Callback] Missing amount — REJECTING. Order:', merchantOrderRef);
+                await markCallbackProcessed(eventId, 'failed', 'missing amount');
                 return NextResponse.json({
                     success: false,
                     message: 'Payment amount missing from callback'
                 }, { status: 400 });
             }
 
-            const expectedAmount = Number(existingOrder.total);
+            // Match against this attempt's expected amount (deposit or balance), not always full total
+            let expectedAmount = Number(existingOrder.amount_due_now ?? existingOrder.total);
+            if (isPlainPostgres() && rawExternalRef) {
+                try {
+                    const { rows } = await query<{ amount_expected: string }>(
+                        `SELECT amount_expected FROM payment_attempts
+                         WHERE internal_reference = $1 LIMIT 1`,
+                        [String(rawExternalRef)]
+                    );
+                    if (rows[0]?.amount_expected != null) {
+                        expectedAmount = Number(rows[0].amount_expected);
+                    }
+                } catch {
+                    // fall through
+                }
+            }
+            if (Number(existingOrder.amount_paid || 0) > 0 && existingOrder.balance_due != null) {
+                expectedAmount = Number(existingOrder.balance_due);
+            }
+
             if (Math.abs(callbackAmount - expectedAmount) > 0.01) {
                 console.error('[Callback] AMOUNT MISMATCH — REJECTING! Expected:', expectedAmount, 'Got:', callbackAmount);
+                await updatePaymentAttemptStatus({
+                    internalReference: String(rawExternalRef || merchantOrderRef),
+                    gatewayReference: String(moolreReference),
+                    status: 'failed',
+                    failureReason: 'amount_mismatch',
+                });
+                await markCallbackProcessed(eventId, 'failed', 'amount mismatch');
                 return NextResponse.json({
                     success: false,
-                    message: 'Payment amount does not match order total'
+                    message: 'Payment amount does not match expected charge'
                 }, { status: 400 });
             }
 
-            const { data: orderJson, error: updateError } = await supabaseAdmin
-                .rpc('mark_order_paid', {
-                    order_ref: merchantOrderRef,
-                    moolre_ref: String(moolreReference)
-                });
+            const payKind = Number(existingOrder.amount_paid || 0) > 0 ? 'balance' : 'checkout';
+            const { order: orderJson, error: updateError } = await applyOrderPayment({
+                orderNumber: merchantOrderRef,
+                amount: callbackAmount,
+                gateway: 'moolre',
+                gatewayRef: String(moolreReference),
+                kind: payKind,
+            });
 
             if (updateError) {
-                console.error('[Callback] RPC Error:', updateError.message);
+                console.error('[Callback] RPC Error:', updateError);
                 return NextResponse.json({ success: false, message: 'Database update failed' }, { status: 500 });
             }
 
@@ -260,7 +293,7 @@ export async function POST(req: Request) {
                 .eq('order_number', merchantOrderRef)
                 .maybeSingle();
 
-            if (failOrder && failOrder.payment_status !== 'paid') {
+            if (failOrder && failOrder.payment_status !== 'paid' && failOrder.payment_status !== 'partially_paid') {
                 await supabaseAdmin
                     .from('orders')
                     .update({
@@ -273,7 +306,8 @@ export async function POST(req: Request) {
                         }
                     })
                     .eq('order_number', merchantOrderRef)
-                    .neq('payment_status', 'paid');
+                    .neq('payment_status', 'paid')
+                    .neq('payment_status', 'partially_paid');
             }
 
             await updatePaymentAttemptStatus({

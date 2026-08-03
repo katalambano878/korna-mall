@@ -4,10 +4,20 @@
 @tailwind utilities;
 
 :root {
-  --brand-ink: #1C1917;
-  --brand-accent: #C2410C;
-  --brand-surface: #FAF7F2;
-  --brand-muted: #D6D3D1;
+  /* KORNA MALL brand — navy / orange / charcoal */
+  --brand-green: #153B6D; /* legacy name → navy */
+  --brand-green-dark: #0F2A4F;
+  --brand-green-soft: #F5F5F5;
+  --brand-navy: #153B6D;
+  --brand-accent: #F28C28; /* warm orange CTAs */
+  --brand-accent-dark: #D97716;
+  --brand-ink: #333333; /* charcoal text */
+  --brand-muted: #6B6B6B;
+  --brand-surface: #FFFFFF;
+  --brand-line: #E5E5E5;
+  /* aliases */
+  --brand-primary: var(--brand-navy);
+  --brand-cta: var(--brand-accent);
 }
 
 /* ========================================
@@ -700,6 +710,24 @@ img {
 
 .animate-progress {
   animation: progress linear;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+  width: max-content;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
 .vertical-text {

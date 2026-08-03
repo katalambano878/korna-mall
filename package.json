@@ -34,12 +34,13 @@
   "scripts": {
     "build": "next build",
     "compress-images": "node scripts/compress-images.mjs",
-    "dev": "cross-env NODE_ENV=development next dev -H 0.0.0.0 -p 3005",
+    "dev": "cross-env NODE_ENV=development next dev -H 0.0.0.0 -p 3007",
     "lint": "next lint",
     "supabase:link": "supabase link --project-ref YOUR_SUPABASE_PROJECT_REF",
     "supabase:push": "supabase db push",
     "supabase:migrate": "supabase link --project-ref YOUR_SUPABASE_PROJECT_REF && supabase db push",
     "db:migrate": "node scripts/run-migration.mjs",
+    "db:schema-smoke": "node scripts/db-schema-smoke.mjs",
     "create-admin": "node scripts/create-admin-user.mjs",
     "start": "next start -H 0.0.0.0 -p 3000"
   },

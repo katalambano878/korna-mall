@@ -154,7 +154,7 @@ export default function AdvancedSearch() {
             }
           }}
           placeholder="Search products, categories..."
-          className="w-full pl-12 pr-24 py-3 border-2 border-gray-300 rounded-full focus:border-blue-700 focus:ring-2 focus:ring-blue-200 text-sm"
+          className="w-full pl-12 pr-24 py-3 border-2 border-gray-300 rounded-full focus:border-brand focus:ring-2 focus:ring-brand/30 text-sm"
         />
         <i className="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-400"></i>
         
@@ -225,7 +225,7 @@ export default function AdvancedSearch() {
                 <p className="text-xs font-semibold text-gray-500">Recent Searches</p>
                 <button
                   onClick={clearRecentSearches}
-                  className="text-xs text-blue-700 hover:text-blue-900 font-medium whitespace-nowrap"
+                  className="text-xs text-brand hover:text-brand-dark font-medium whitespace-nowrap"
                 >
                   Clear All
                 </button>

@@ -73,7 +73,7 @@ export default function CartPage() {
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
               <p className="text-gray-600 mb-8 text-lg">Looks like you&#39;t added anything to your cart yet</p>
-              <Link href="/shop" className="inline-block bg-[#0A0F1D] hover:bg-black text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap">
+              <Link href="/shop" className="inline-block bg-brand-accent hover:bg-brand-accentDark text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap">
                 Continue Shopping
               </Link>
             </div>
@@ -100,7 +100,7 @@ export default function CartPage() {
 
                           <div className="flex-1">
                             <div className="flex justify-between mb-2">
-                              <Link href={`/product/${item.slug || item.id}`} className="text-lg font-semibold text-gray-900 hover:text-blue-700 transition-colors line-clamp-2">
+                              <Link href={`/product/${item.slug || item.id}`} className="text-lg font-semibold text-gray-900 hover:text-brand transition-colors line-clamp-2">
                                 {item.name}
                               </Link>
                               <button
@@ -236,7 +236,7 @@ export default function CartPage() {
 
                     <Link
                       href="/checkout"
-                      className="block w-full bg-[#0A0F1D] hover:bg-black text-white py-4 rounded-lg font-semibold text-center transition-colors mt-6 mb-3 whitespace-nowrap"
+                      className="block w-full bg-brand-accent hover:bg-brand-accentDark text-white py-4 rounded-lg font-semibold text-center transition-colors mt-6 mb-3 whitespace-nowrap"
                     >
                       Proceed to Checkout
                     </Link>

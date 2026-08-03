@@ -148,9 +148,9 @@ function OrderTrackingContent() {
     
     const statusMap: Record<string, { label: string; color: string }> = {
       'pending': { label: 'Pending', color: 'bg-amber-100 text-amber-800' },
-      'processing': { label: 'Processing', color: 'bg-blue-100 text-blue-800' },
+      'processing': { label: 'Processing', color: 'bg-brand-soft text-brand' },
       'shipped': { label: 'Packaged', color: 'bg-purple-100 text-purple-800' },
-      'delivered': { label: 'Delivered', color: 'bg-blue-100 text-blue-800' },
+      'delivered': { label: 'Delivered', color: 'bg-brand-soft text-brand' },
       'cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800' }
     };
 
@@ -177,7 +177,7 @@ function OrderTrackingContent() {
                   type="text"
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="e.g. ORD-1770328211911-915 or SLI-ABC123"
                 />
               </div>
@@ -190,7 +190,7 @@ function OrderTrackingContent() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="you@example.com"
                 />
               </div>
@@ -204,7 +204,7 @@ function OrderTrackingContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full bg-brand hover:bg-brand-dark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -215,12 +215,12 @@ function OrderTrackingContent() {
               </button>
             </form>
 
-            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-8 p-4 bg-brand-soft border border-brand/30 rounded-lg">
               <div className="flex items-start space-x-3">
-                <i className="ri-information-line text-xl text-blue-700 mt-0.5"></i>
+                <i className="ri-information-line text-xl text-brand mt-0.5"></i>
                 <div>
-                  <p className="text-sm font-semibold text-blue-900">Need Help?</p>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p className="text-sm font-semibold text-brand-dark">Need Help?</p>
+                  <p className="text-sm text-brand mt-1">
                     You can find your order number and tracking number in the SMS or email we sent you after your order was confirmed.
                   </p>
                 </div>
@@ -280,8 +280,8 @@ function OrderTrackingContent() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
-                  <i className="ri-map-pin-line text-xl text-blue-700"></i>
+                <div className="w-10 h-10 flex items-center justify-center bg-brand-soft rounded-full">
+                  <i className="ri-map-pin-line text-xl text-brand"></i>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Shipping To</p>
@@ -294,20 +294,31 @@ function OrderTrackingContent() {
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
-                  <i className="ri-money-cny-circle-line text-xl text-blue-700"></i>
+                <div className="w-10 h-10 flex items-center justify-center bg-brand-soft rounded-full">
+                  <i className="ri-money-cny-circle-line text-xl text-brand"></i>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total</p>
-                  <p className="font-semibold text-gray-900">GH₵ {Number(order.total).toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">
+                    {order.payment_plan === 'deposit_50' ? 'Paid / Balance' : 'Total'}
+                  </p>
+                  <p className="font-semibold text-gray-900">
+                    {order.payment_plan === 'deposit_50' || Number(order.balance_due || 0) > 0
+                      ? `GH₵ ${Number(order.amount_paid || 0).toFixed(2)} / GH₵ ${Number(order.balance_due || 0).toFixed(2)}`
+                      : `GH₵ ${Number(order.total).toFixed(2)}`}
+                  </p>
+                  {Number(order.balance_due || 0) > 0.01 && (
+                    <Link href={`/pay/${order.id}`} className="text-xs text-brand-accent font-semibold hover:underline">
+                      Pay balance
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
-                  <i className="ri-box-3-line text-xl text-blue-700"></i>
+                <div className="w-10 h-10 flex items-center justify-center bg-brand-soft rounded-full">
+                  <i className="ri-box-3-line text-xl text-brand"></i>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Items</p>
@@ -326,16 +337,16 @@ function OrderTrackingContent() {
                 <div className="relative flex flex-col items-center mr-6">
                   <div className={`w-12 h-12 flex items-center justify-center rounded-full font-bold transition-colors ${
                     step.status === 'completed'
-                      ? 'bg-blue-700 text-white'
+                      ? 'bg-brand text-white'
                       : step.status === 'active'
-                      ? 'bg-blue-100 text-blue-700 ring-4 ring-blue-200'
+                      ? 'bg-brand-soft text-brand ring-4 ring-brand/30'
                       : 'bg-gray-200 text-gray-500'
                   }`}>
                     <i className={`${step.icon} text-xl`}></i>
                   </div>
                   {index < trackingSteps.length - 1 && (
                     <div className={`w-0.5 h-16 mt-2 ${
-                      step.status === 'completed' ? 'bg-blue-700' : 'bg-gray-200'
+                      step.status === 'completed' ? 'bg-brand' : 'bg-gray-200'
                     }`}></div>
                   )}
                 </div>
@@ -351,7 +362,7 @@ function OrderTrackingContent() {
                     {step.description}
                   </p>
                   <p className={`text-sm mt-1 font-semibold ${
-                    step.status === 'pending' ? 'text-gray-400' : 'text-blue-700'
+                    step.status === 'pending' ? 'text-gray-400' : 'text-brand'
                   }`}>
                     {step.date}
                   </p>
@@ -387,7 +398,7 @@ function OrderTrackingContent() {
                     <p className="text-xs text-gray-500">{item.variant_name}</p>
                   )}
                 </div>
-                <p className="font-bold text-blue-700">GH₵ {Number(item.unit_price).toFixed(2)}</p>
+                <p className="font-bold text-brand">GH₵ {Number(item.unit_price).toFixed(2)}</p>
               </div>
             ))}
           </div>
@@ -396,11 +407,11 @@ function OrderTrackingContent() {
         <div className="mt-8 text-center">
           <p className="text-gray-600 mb-4">Need help with your order?</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/contact" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+            <Link href="/contact" className="text-brand hover:text-brand-dark font-semibold whitespace-nowrap">
               <i className="ri-customer-service-line mr-1"></i>
               Contact Support
             </Link>
-            <Link href="/returns" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+            <Link href="/returns" className="text-brand hover:text-brand-dark font-semibold whitespace-nowrap">
               <i className="ri-arrow-left-right-line mr-1"></i>
               Returns Policy
             </Link>
@@ -416,7 +427,7 @@ export default function OrderTrackingPage() {
     <Suspense fallback={
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-700 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </main>
     }>

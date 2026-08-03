@@ -8,9 +8,9 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
 const EMAIL_FROM = process.env.EMAIL_FROM || 'KORNA MALL <noreply@example.com>';
 const BRAND = {
     name: 'KORNA MALL',
-    color: '#1C1917',
-    colorLight: '#FAF7F2',
-    colorDark: '#C2410C',
+    color: '#153B6D',
+    colorLight: '#FFFFFF',
+    colorDark: '#F28C28',
     url: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005').replace(/\/+$/, ''),
 };
 
@@ -110,10 +110,17 @@ function emailTotalsTable(order: any): string {
     const shippingVal = Number(order.shipping_total || 0);
     const discountVal = Number(order.discount_total || 0);
 
+    const plan = order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment';
+    const paid = Number(order.amount_paid || 0);
+    const balance = Number(order.balance_due ?? Math.max(0, Number(order.total || 0) - paid));
+
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:12px 0 20px;">
 ${line('Subtotal', fmt(subtotal))}
 ${line('Delivery', shippingVal > 0 ? fmt(shippingVal) : 'Free / Pickup')}
 ${discountVal > 0 ? line('Discount', `-${fmt(discountVal)}`) : ''}
+${line('Payment plan', plan)}
+${paid > 0 ? line('Amount paid', fmt(paid)) : ''}
+${balance > 0.01 ? line('Balance on delivery', fmt(balance)) : ''}
 <tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding:0;"></td></tr>
 ${line('Total', fmt(order.total), true)}
 </table>`;
@@ -367,6 +374,9 @@ ${emailButton('Track Your Order', trackingUrl)}
   ${phone ? emailInfoRow('Phone', `<a href="tel:${phone}" style="color:${BRAND.color};">${escapeHtml(phone)}</a>`) : ''}
   ${emailInfoRow('Fulfilment', order.shipping_method === 'pickup' ? 'Store Pickup' : 'Delivery')}
   ${emailInfoRow('Payment', `${escapeHtml(order.payment_method || 'N/A')} — ${escapeHtml(order.payment_status || 'pending')}`)}
+  ${emailInfoRow('Plan', order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment')}
+  ${Number(order.amount_paid || 0) > 0 ? emailInfoRow('Paid', `GH&#8373;${Number(order.amount_paid).toFixed(2)}`) : ''}
+  ${Number(order.balance_due || 0) > 0.01 ? emailInfoRow('Balance due', `GH&#8373;${Number(order.balance_due).toFixed(2)}`) : ''}
   ${trackingNumber ? emailInfoRow('Tracking', trackingNumber) : ''}
 </table>
 

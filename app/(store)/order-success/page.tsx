@@ -36,25 +36,37 @@ function OrderSuccessContent() {
         if (orderData) {
           setOrder(orderData);
 
-          if (paymentSuccess === 'true' && orderData.payment_status !== 'paid') {
+          if (
+            paymentSuccess === 'true' &&
+            orderData.payment_status !== 'paid' &&
+            orderData.payment_status !== 'partially_paid'
+          ) {
             setVerifying(true);
             await new Promise(resolve => setTimeout(resolve, 3000));
 
             const refreshed = await lookupOrder(orderNumber);
-            if (refreshed?.payment_status === 'paid') {
+            if (refreshed?.payment_status === 'paid' || refreshed?.payment_status === 'partially_paid') {
               setOrder(refreshed);
               setVerifying(false);
               return;
             }
 
             try {
-              const res = await fetch('/api/payment/moolre/verify', {
+              const gateway =
+                refreshed?.metadata?.payment_gateway ||
+                orderData.metadata?.payment_gateway ||
+                'moolre';
+              const verifyPath =
+                gateway === 'hubtel'
+                  ? '/api/payment/hubtel/verify'
+                  : '/api/payment/moolre/verify';
+              const res = await fetch(verifyPath, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderNumber }),
               });
               const result = await res.json();
-              if (result.success && result.payment_status === 'paid') {
+              if (result.success) {
                 const updated = await lookupOrder(orderNumber);
                 if (updated) setOrder(updated);
               }
@@ -78,7 +90,7 @@ function OrderSuccessContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <i className="ri-loader-4-line text-4xl text-blue-700 animate-spin mb-4 block"></i>
+          <i className="ri-loader-4-line text-4xl text-brand animate-spin mb-4 block"></i>
           <p className="text-gray-500">Loading order details...</p>
         </div>
       </div>
@@ -93,7 +105,7 @@ function OrderSuccessContent() {
           <i className="ri-error-warning-line text-4xl text-red-500 mb-4 block"></i>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
           <p className="text-gray-600 mb-6">We couldn't locate the order details.</p>
-          <Link href="/shop" className="text-blue-700 font-semibold hover:underline">
+          <Link href="/shop" className="text-brand font-semibold hover:underline">
             Return to Shop
           </Link>
         </div>
@@ -106,7 +118,7 @@ function OrderSuccessContent() {
   const pointsEarned = Math.floor(order.total / 10); // Example logic: 1 point per 10 currency units
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <main className="min-h-screen bg-gradient-to-br from-brand-soft via-white to-brand-soft">
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -129,16 +141,20 @@ function OrderSuccessContent() {
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center mb-8">
-            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-6 bg-blue-100 rounded-full">
-              <i className="ri-checkbox-circle-fill text-6xl text-blue-600"></i>
+            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-6 bg-brand-soft rounded-full">
+              <i className="ri-checkbox-circle-fill text-6xl text-brand"></i>
             </div>
 
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Order Confirmed!</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              {order.payment_status === 'partially_paid' ? 'Deposit Received!' : 'Order Confirmed!'}
+            </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Thank you for your purchase. We're processing your order now.
+              {order.payment_status === 'partially_paid'
+                ? 'Thanks — your 50% deposit is in. Pay the rest when your goods arrive, or online anytime.'
+                : "Thank you for your purchase. We're processing your order now."}
             </p>
 
-            <div className="bg-blue-50 rounded-xl p-6 mb-8">
+            <div className="bg-brand-soft rounded-xl p-6 mb-8">
               <div className="grid md:grid-cols-3 gap-6 text-center">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Order Number</p>
@@ -150,15 +166,45 @@ function OrderSuccessContent() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Estimated Delivery</p>
-                  <p className="text-lg font-bold text-blue-700">{estimatedDelivery}</p>
+                  <p className="text-lg font-bold text-brand">{estimatedDelivery}</p>
                 </div>
               </div>
+              <div className="mt-6 pt-6 border-t border-brand/10 grid sm:grid-cols-3 gap-4 text-center text-sm">
+                <div>
+                  <p className="text-gray-600 mb-1">Plan</p>
+                  <p className="font-semibold text-brand-ink">
+                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 mb-1">Paid</p>
+                  <p className="font-semibold text-brand-ink">
+                    GH₵ {Number(order.amount_paid || (order.payment_status === 'paid' ? order.total : 0)).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 mb-1">Balance due</p>
+                  <p className="font-semibold text-brand-accent">
+                    GH₵ {Number(order.balance_due || 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              {Number(order.balance_due || 0) > 0.01 && (
+                <div className="mt-4">
+                  <Link
+                    href={`/pay/${order.id}`}
+                    className="inline-flex items-center justify-center bg-brand-accent hover:bg-brand-accentDark text-white px-6 py-3 rounded-lg font-semibold text-sm"
+                  >
+                    Pay remaining balance
+                  </Link>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
                 href={`/account?tab=orders`}
-                className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
+                className="bg-brand-accent hover:bg-brand-accentDark text-white px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
               >
                 <i className="ri-file-list-3-line mr-2"></i>
                 View Order
@@ -272,21 +318,21 @@ function OrderSuccessContent() {
                 <h3 className="font-semibold text-gray-900 mb-3">What's Next?</h3>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
-                    <i className="ri-mail-line text-blue-700 mt-1"></i>
+                    <i className="ri-mail-line text-brand mt-1"></i>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">Email Confirmation</p>
                       <p className="text-sm text-gray-600">Sent to {order.email}</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <i className="ri-box-3-line text-blue-700 mt-1"></i>
+                    <i className="ri-box-3-line text-brand mt-1"></i>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">Processing</p>
                       <p className="text-sm text-gray-600">We'll pack your order today</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <i className="ri-truck-line text-blue-700 mt-1"></i>
+                    <i className="ri-truck-line text-brand mt-1"></i>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">Shipping Updates</p>
                       <p className="text-sm text-gray-600">Track via email & SMS</p>
@@ -300,15 +346,15 @@ function OrderSuccessContent() {
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-4">Need help with your order?</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+              <Link href="/contact" className="text-brand hover:text-brand-dark font-semibold whitespace-nowrap">
                 <i className="ri-customer-service-line mr-1"></i>
                 Contact Support
               </Link>
-              <Link href="/account/orders" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+              <Link href="/account/orders" className="text-brand hover:text-brand-dark font-semibold whitespace-nowrap">
                 <i className="ri-question-line mr-1"></i>
                 Order Help
               </Link>
-              <Link href="/returns" className="text-blue-700 hover:text-blue-900 font-semibold whitespace-nowrap">
+              <Link href="/returns" className="text-brand hover:text-brand-dark font-semibold whitespace-nowrap">
                 <i className="ri-arrow-left-right-line mr-1"></i>
                 Returns Policy
               </Link>
@@ -336,7 +382,7 @@ export default function OrderSuccessPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-blue-700 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <OrderSuccessContent />

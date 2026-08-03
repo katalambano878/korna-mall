@@ -1,7 +1,7 @@
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-blue-50 via-white to-amber-50 py-16">
+      <div className="bg-gradient-to-br from-brand-soft via-white to-amber-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Terms & Conditions</h1>
@@ -79,19 +79,19 @@ export default function TermsPage() {
             </p>
             <ul className="space-y-2 text-gray-600 mb-6">
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Modify prices at any time without notice</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Correct pricing errors, even after an order is placed</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Limit quantities available for purchase</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Discontinue products at any time</span>
               </li>
             </ul>
@@ -114,19 +114,19 @@ export default function TermsPage() {
             </p>
             <ul className="space-y-2 text-gray-600 mb-6">
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Product unavailability or pricing errors</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Suspected fraudulent or unauthorised transactions</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Inaccuracies in product or pricing information</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-arrow-right-s-line text-blue-700 mt-1"></i>
+                <i className="ri-arrow-right-s-line text-brand mt-1"></i>
                 <span>Failure to meet age or eligibility requirements</span>
               </li>
             </ul>
@@ -138,11 +138,11 @@ export default function TermsPage() {
             <div className="bg-gray-50 p-6 rounded-xl mb-6">
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
-                  <i className="ri-smartphone-line text-blue-700"></i>
+                  <i className="ri-smartphone-line text-brand"></i>
                   <span>Mobile Money (MTN, Vodafone, AirtelTigo) via Moolre</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <i className="ri-bank-card-line text-blue-700"></i>
+                  <i className="ri-bank-card-line text-brand"></i>
                   <span>Credit/Debit Cards (Visa, Mastercard) via Moolre</span>
                 </li>
               </ul>
@@ -203,19 +203,19 @@ export default function TermsPage() {
             </p>
             <ul className="space-y-2 text-gray-600 mb-6">
               <li className="flex items-start gap-2">
-                <i className="ri-checkbox-circle-line text-blue-700 mt-1"></i>
+                <i className="ri-checkbox-circle-line text-brand mt-1"></i>
                 <span>Does not violate any laws or third-party rights</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-checkbox-circle-line text-blue-700 mt-1"></i>
+                <i className="ri-checkbox-circle-line text-brand mt-1"></i>
                 <span>Is not defamatory, offensive, or inappropriate</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-checkbox-circle-line text-blue-700 mt-1"></i>
+                <i className="ri-checkbox-circle-line text-brand mt-1"></i>
                 <span>Does not contain viruses or malicious code</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-checkbox-circle-line text-blue-700 mt-1"></i>
+                <i className="ri-checkbox-circle-line text-brand mt-1"></i>
                 <span>Is truthful and based on your genuine experience</span>
               </li>
             </ul>
@@ -287,8 +287,8 @@ export default function TermsPage() {
             </p>
           </section>
 
-          <div className="bg-blue-50 border-2 border-blue-200 p-8 rounded-xl text-center">
-            <i className="ri-checkbox-circle-line text-4xl text-blue-700 mb-4"></i>
+          <div className="bg-brand-soft border-2 border-brand/30 p-8 rounded-xl text-center">
+            <i className="ri-checkbox-circle-line text-4xl text-brand mb-4"></i>
             <p className="text-gray-600 leading-relaxed">
               By using our website, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.
             </p>

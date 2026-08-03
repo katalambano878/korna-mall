@@ -17,6 +17,8 @@ export function orderPaymentToInternal(status: string | null | undefined): Inter
     case 'successful':
     case 'success':
       return 'successful';
+    case 'partially_paid':
+      return 'processing';
     case 'failed':
     case 'fail':
       return 'failed';

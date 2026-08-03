@@ -25,6 +25,9 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [settling, setSettling] = useState(false);
+  const [settleMethod, setSettleMethod] = useState('cash');
+  const [settleNote, setSettleNote] = useState('');
 
   const handlePrint = () => {
     window.print();
@@ -245,9 +248,9 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const statusLabel = (s: string) => s === 'shipped' ? 'Packaged' : s.charAt(0).toUpperCase() + s.slice(1);
   const statusColors: any = {
     'pending': 'bg-amber-100 text-amber-700 border-amber-200',
-    'processing': 'bg-blue-100 text-blue-700 border-blue-200',
+    'processing': 'bg-brand-soft text-brand border-brand/30',
     'shipped': 'bg-purple-100 text-purple-700 border-purple-200',
-    'delivered': 'bg-blue-100 text-blue-700 border-blue-200',
+    'delivered': 'bg-brand-soft text-brand border-brand/30',
     'cancelled': 'bg-red-100 text-red-700 border-red-200',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
@@ -264,7 +267,11 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   // Derive timeline from status (simplified logic as we don't have full history table joined here yet)
   const timeline = [
     { status: 'Order Placed', date: new Date(order.created_at).toLocaleString(), completed: true },
-    { status: 'Payment', date: order.payment_status, completed: order.payment_status === 'paid' },
+    {
+      status: 'Payment',
+      date: order.payment_status,
+      completed: order.payment_status === 'paid' || order.payment_status === 'partially_paid',
+    },
     { status: 'Processing', date: '', completed: ['processing', 'shipped', 'delivered'].includes(order.status) },
     { status: 'Packaged', date: '', completed: ['shipped', 'delivered'].includes(order.status) },
     { status: 'Delivered', date: '', completed: order.status === 'delivered' }
@@ -430,7 +437,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span>GH₵ {order.tax_total?.toFixed(2)}</span>
                 </div>
                 {order.discount_total > 0 && (
-                  <div className="flex justify-between text-blue-700 font-semibold">
+                  <div className="flex justify-between text-brand font-semibold">
                     <span>Discount</span>
                     <span>-GH₵ {order.discount_total?.toFixed(2)}</span>
                   </div>
@@ -438,6 +445,24 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 <div className="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t border-gray-200">
                   <span>Total</span>
                   <span>GH₵ {order.total?.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Plan</span>
+                  <span className="font-semibold">
+                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Amount paid</span>
+                  <span className="font-semibold text-brand">
+                    GH₵ {Number(order.amount_paid || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Balance due</span>
+                  <span className="font-semibold text-brand-accent">
+                    GH₵ {Number(order.balance_due || 0).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -447,7 +472,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <div className="space-y-4">
                 {timeline.map((event, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${event.completed ? 'bg-blue-700 border-blue-700' : 'bg-white border-gray-300'
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${event.completed ? 'bg-brand border-brand' : 'bg-white border-gray-300'
                       }`}>
                       {event.completed ? (
                         <i className="ri-check-line text-white text-xl"></i>
@@ -488,7 +513,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                         onClick={() => {
                           handleUpdateStatus(status);
                         }}
-                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${status === currentStatus ? 'bg-blue-50 font-semibold' : ''
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${status === currentStatus ? 'bg-brand-soft font-semibold' : ''
                           }`}
                       >
                         {statusLabel(status)}
@@ -506,14 +531,14 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   type="text"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
               <button
                 onClick={() => handleUpdateStatus()}
                 disabled={statusUpdating}
-                className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full mt-4 bg-brand hover:bg-brand-dark text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {statusUpdating ? 'Updating...' : 'Update Status'}
               </button>
@@ -522,7 +547,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Customer</h2>
               <div className="flex items-start space-x-3 mb-4">
-                <div className="w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold uppercase">
+                <div className="w-12 h-12 flex items-center justify-center bg-brand-soft text-brand rounded-full font-semibold uppercase">
                   {customerName.substring(0, 2)}
                 </div>
                 <div>
@@ -556,19 +581,98 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span className="font-semibold text-gray-900 capitalize">{order.payment_method}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-gray-600">Plan</span>
+                  <span className="font-semibold text-gray-900">
+                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold whitespace-nowrap capitalize">
+                  <span className="px-3 py-1 bg-brand-soft text-brand rounded-full text-sm font-semibold whitespace-nowrap capitalize">
                     {order.payment_status}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  {/* Transaction ID might be in metadata depending on callback */}
+                  <span className="text-gray-600">Paid / Balance</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    GH₵ {Number(order.amount_paid || 0).toFixed(2)} / GH₵ {Number(order.balance_due || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">Transaction</span>
                   <span className="text-sm text-gray-900 font-mono truncate max-w-[150px]">
-                    {order.metadata?.moolre_reference || order.payment_transaction_id || 'N/A'}
+                    {order.metadata?.last_payment_ref ||
+                      order.metadata?.moolre_reference ||
+                      order.payment_transaction_id ||
+                      'N/A'}
                   </span>
                 </div>
               </div>
+
+              {Number(order.balance_due || 0) > 0.01 && order.payment_status !== 'paid' && (
+                <div className="mt-5 pt-5 border-t border-gray-100 space-y-3">
+                  <p className="text-sm font-semibold text-gray-900">Record balance received</p>
+                  <select
+                    value={settleMethod}
+                    onChange={(e) => setSettleMethod(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="momo">Mobile Money</option>
+                    <option value="bank">Bank transfer</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={settleNote}
+                    onChange={(e) => setSettleNote(e.target.value)}
+                    placeholder="Optional note"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    disabled={settling}
+                    onClick={async () => {
+                      setSettling(true);
+                      try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        const res = await fetch('/api/admin/orders/settle-balance', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            ...(session?.access_token
+                              ? { Authorization: `Bearer ${session.access_token}` }
+                              : {}),
+                          },
+                          body: JSON.stringify({
+                            orderNumber: order.order_number,
+                            method: settleMethod,
+                            note: settleNote,
+                          }),
+                        });
+                        const result = await res.json();
+                        if (!result.success) throw new Error(result.message || 'Failed');
+                        await fetchOrderDetails();
+                        alert('Balance recorded — order payment updated.');
+                      } catch (e: any) {
+                        alert(e.message || 'Failed to settle balance');
+                      } finally {
+                        setSettling(false);
+                      }
+                    }}
+                    className="w-full bg-brand-accent hover:bg-brand-accentDark text-white py-2.5 rounded-lg font-semibold text-sm disabled:opacity-50"
+                  >
+                    {settling ? 'Saving...' : 'Mark balance paid'}
+                  </button>
+                  <a
+                    href={`/pay/${order.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full text-center border-2 border-brand text-brand py-2.5 rounded-lg font-semibold text-sm hover:bg-brand-soft"
+                  >
+                    Open customer balance pay link
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -579,7 +683,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <button
                 onClick={handleResendNotification}
                 disabled={resendingNotification}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
+                className="w-full bg-brand hover:bg-brand-dark text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
               >
                 {resendingNotification ? (
                   <>
@@ -606,7 +710,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 placeholder="Add internal notes about this order..."
                 rows={4}
                 maxLength={500}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand resize-none"
               />
               <button
                 onClick={() => handleUpdateStatus()}

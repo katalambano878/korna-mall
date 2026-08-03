@@ -73,7 +73,7 @@ export default function AboutPage() {
         {activeTab === 'story' && (
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="order-2 lg:order-1">
-              <span className="inline-block py-1.5 px-4 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs tracking-widest uppercase mb-6 border border-blue-100/50">The Beginning</span>
+              <span className="inline-block py-1.5 px-4 rounded-full bg-brand-soft text-brand font-semibold text-xs tracking-widest uppercase mb-6 border border-brand/20">The Beginning</span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-8 tracking-tight">How It All Started</h2>
               <div className="space-y-6 text-lg text-gray-500 leading-relaxed font-light">
                 <p>
@@ -98,7 +98,7 @@ export default function AboutPage() {
               </div>
 
               {/* Decorative shadow blur element behind */}
-              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-blue-100/60 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-brand-soft/60 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
             </div>
           </div>
         )}
@@ -108,15 +108,15 @@ export default function AboutPage() {
             {/* Card 1 */}
             <div className="group relative bg-white p-10 sm:p-14 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-1000 overflow-hidden ring-1 ring-gray-900/5 hover:ring-gray-900/10 hover:-translate-y-1">
               {/* Subtle God-Level Background Glow */}
-              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 bg-blue-50/60 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none z-0"></div>
+              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 bg-brand-soft/60 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none z-0"></div>
 
               {/* Ultra-subtle watermark */}
               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-[0.02] transform translate-x-8 -translate-y-8 group-hover:translate-x-2 group-hover:-translate-y-2 group-hover:scale-[1.1] transition-all duration-1000 ease-out pointer-events-none z-0">
                 <i className="ri-shield-check-fill text-[160px] text-gray-900 leading-none"></i>
               </div>
 
-              <div className="relative z-10 w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-50/50 group-hover:from-blue-50/50 group-hover:to-blue-100/50 rounded-2xl flex items-center justify-center mb-10 border border-gray-200/50 group-hover:border-blue-200/50 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] group-hover:shadow-[0_8px_30px_-4px_rgba(59,130,246,0.12)] group-hover:-translate-y-1 transition-all duration-700 ease-out">
-                <i className="ri-shield-check-line text-2xl text-gray-500 group-hover:text-blue-600 transition-colors duration-700"></i>
+              <div className="relative z-10 w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-50/50 group-hover:from-brand-soft/50 group-hover:to-brand-soft/50 rounded-2xl flex items-center justify-center mb-10 border border-gray-200/50 group-hover:border-brand/50 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] group-hover:shadow-[0_8px_30px_-4px_rgba(59,130,246,0.12)] group-hover:-translate-y-1 transition-all duration-700 ease-out">
+                <i className="ri-shield-check-line text-2xl text-gray-500 group-hover:text-brand transition-colors duration-700"></i>
               </div>
 
               <div className="relative z-10">
@@ -159,7 +159,7 @@ export default function AboutPage() {
       {/* Values Section */}
       <div className="relative bg-gradient-to-b from-[#FAFAFA] to-white py-24 lg:py-32 overflow-hidden border-t border-gray-100">
         {/* Ambient Glow Effects */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-soft/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gray-100/50 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
 
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -203,19 +203,19 @@ export default function AboutPage() {
       <div className="bg-white py-20 lg:py-32 px-4 sm:px-6 lg:px-8 flex justify-center">
         <div className="relative w-full max-w-6xl rounded-[3rem] overflow-hidden bg-gray-900 border border-gray-800 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] group">
           {/* Subtle elegant glow effects */}
-          <div className="absolute top-0 right-0 -m-32 w-96 h-96 bg-blue-600/30 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/40 transition-colors duration-1000"></div>
-          <div className="absolute bottom-0 left-0 -m-32 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none group-hover:bg-indigo-500/30 transition-colors duration-1000"></div>
+          <div className="absolute top-0 right-0 -m-32 w-96 h-96 bg-brand/30 rounded-full blur-[100px] pointer-events-none group-hover:bg-brand-dark/40 transition-colors duration-1000"></div>
+          <div className="absolute bottom-0 left-0 -m-32 w-96 h-96 bg-brand/20 rounded-full blur-[100px] pointer-events-none group-hover:bg-brand-dark/30 transition-colors duration-1000"></div>
 
           {/* Glass Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50 pointer-events-none"></div>
 
           <div className="relative z-10 px-6 py-20 sm:p-24 text-center">
             <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/10 text-gray-300 font-medium text-xs tracking-widest uppercase mb-8 border border-white/10 backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse"></span>
               The Next Step
             </span>
             <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black mb-6 text-white tracking-tight">
-              Ready to shop <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-300 via-white to-blue-200">smarter?</span>
+              Ready to shop <span className="text-transparent bg-clip-text bg-gradient-to-br from-brand-accent via-white to-brand-soft">smarter?</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto font-light">
               Browse our curated collection of quality products from trusted sellers. Shop smarter from Accra to your doorstep.

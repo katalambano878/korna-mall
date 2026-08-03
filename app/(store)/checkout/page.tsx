@@ -55,9 +55,9 @@ export default function CheckoutPage() {
   ];
 
   const [deliveryMethod, setDeliveryMethod] = useState('pickup');
-  // Moolre temporarily disabled — orders go through WhatsApp instead
-  // const [paymentMethod, setPaymentMethod] = useState('moolre');
-  const [paymentMethod] = useState('whatsapp');
+  const [paymentPlan, setPaymentPlan] = useState<'full' | 'deposit_50'>('full');
+  const [paymentGateway, setPaymentGateway] = useState<'moolre' | 'hubtel' | ''>('');
+  const [gateways, setGateways] = useState<Array<{ id: 'moolre' | 'hubtel'; label: string; configured: boolean }>>([]);
   const [errors, setErrors] = useState<any>({});
 
   // Store WhatsApp number (E.164, no +) that receives the orders
@@ -114,11 +114,34 @@ export default function CheckoutPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
+  // Load configured payment gateways
+  useEffect(() => {
+    fetch('/api/payment/gateways')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.gateways)) {
+          setGateways(data.gateways);
+          if (data.gateways.length > 0) {
+            setPaymentGateway((prev) => prev || data.gateways[0].id);
+          }
+        }
+      })
+      .catch((err) => console.error('Failed to load payment gateways:', err));
+  }, []);
+
   // Calculate Totals
   const subtotal = cartSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
   const total = subtotal + shippingCost + tax;
+  const amountDueNow =
+    paymentPlan === 'deposit_50'
+      ? Math.round((total / 2) * 100) / 100
+      : total;
+  const balanceDue =
+    paymentPlan === 'deposit_50'
+      ? Math.round((total - amountDueNow) * 100) / 100
+      : 0;
 
   const validateShipping = () => {
     const newErrors: any = {};
@@ -141,9 +164,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleContinueToPayment = async () => {
-    // Skip step 3 — place the order and send the details to WhatsApp
-    await handlePlaceOrder();
+  const handleContinueToPayment = () => {
+    setCurrentStep(3);
   };
 
 
@@ -153,10 +175,13 @@ export default function CheckoutPage() {
       alert('Your cart is empty');
       return;
     }
+    if (!paymentGateway) {
+      alert('Please select a payment method or contact support.');
+      return;
+    }
 
     setIsLoading(true);
 
-    // reCAPTCHA verification
     const isHuman = await getToken('checkout');
     if (!isHuman) {
       alert('Security verification failed. Please try again.');
@@ -182,7 +207,8 @@ export default function CheckoutPage() {
           })),
           shipping: shippingData,
           deliveryMethod,
-          paymentMethod,
+          paymentPlan,
+          paymentGateway,
         }),
       });
 
@@ -191,30 +217,60 @@ export default function CheckoutPage() {
         throw new Error(result.message || 'Failed to place order');
       }
 
-      const orderNumber = result.order.order_number as string;
-      const trackingNumber = (result.order.tracking_number as string) || '';
+      const order = result.order;
+      const orderNumber = order.order_number as string;
+      const trackingNumber = (order.tracking_number as string) || '';
 
-      // Notify admin/customer of WhatsApp order placement (pending payment)
+      const initiateRes = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          gateway: paymentGateway,
+          purpose: 'checkout',
+          customerEmail: shippingData.email,
+          customerPhone: shippingData.phone,
+          customerName: `${shippingData.firstName} ${shippingData.lastName}`.trim(),
+        }),
+      });
+
+      const initiateResult = await initiateRes.json().catch(() => ({}));
+
+      if (!initiateRes.ok || !initiateResult.success) {
+        const msg = initiateResult.message || 'Failed to start payment';
+        alert(`${msg}\n\nYou can try again at /pay/${order.id}`);
+        setIsLoading(false);
+        return;
+      }
+
       fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'order_created',
           payload: {
-            id: result.order.id,
+            id: order.id,
             order_number: orderNumber,
             email: shippingData.email,
             phone: shippingData.phone,
-            total: result.order.total,
+            total: order.total,
             shipping_address: shippingData,
-            metadata: { tracking_number: trackingNumber, payment_method: paymentMethod },
+            metadata: {
+              tracking_number: trackingNumber,
+              payment_gateway: paymentGateway,
+              payment_plan: order.payment_plan || paymentPlan,
+              amount_due_now: order.amount_due_now ?? amountDueNow,
+            },
           },
         }),
       }).catch((err) => console.error('Notification trigger error:', err));
 
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage(orderNumber, trackingNumber))}`;
       clearCart();
-      window.location.href = whatsappUrl;
+      if (initiateResult.url) {
+        window.location.href = initiateResult.url;
+      } else {
+        window.location.href = `/pay/${order.id}`;
+      }
     } catch (err: any) {
       console.error('Checkout error:', err);
       alert('Failed to place order: ' + err.message);
@@ -232,7 +288,7 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
           <p className="text-gray-600 mb-8">Add some items to start the checkout process.</p>
-          <Link href="/shop" className="inline-block bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+          <Link href="/shop" className="inline-block bg-brand-accent text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-accentDark transition-colors">
             Return to Shop
           </Link>
         </div>
@@ -259,33 +315,33 @@ export default function CheckoutPage() {
               <button
                 onClick={() => !user && setCheckoutType('guest')}
                 className={`p-6 rounded-xl border-2 transition-all text-left cursor-pointer ${checkoutType === 'guest'
-                  ? 'border-blue-700 bg-blue-50'
+                  ? 'border-brand bg-brand-soft'
                   : 'border-gray-200 hover:border-gray-300'
                   } ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={!!user}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <i className="ri-user-line text-3xl text-blue-700"></i>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'guest' ? 'border-blue-700 bg-blue-700' : 'border-gray-300'
+                  <i className="ri-user-line text-3xl text-brand"></i>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'guest' ? 'border-brand bg-brand' : 'border-gray-300'
                     }`}>
                     {checkoutType === 'guest' && <i className="ri-check-line text-white text-sm"></i>}
                   </div>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Guest Checkout</h3>
                 <p className="text-sm text-gray-600">Quick checkout without creating an account</p>
-                {user && <p className="text-xs text-blue-600 mt-2">You are logged in</p>}
+                {user && <p className="text-xs text-brand mt-2">You are logged in</p>}
               </button>
 
               <button
                 onClick={() => setCheckoutType('account')}
                 className={`p-6 rounded-xl border-2 transition-all text-left cursor-pointer ${checkoutType === 'account'
-                  ? 'border-blue-700 bg-blue-50'
+                  ? 'border-brand bg-brand-soft'
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <i className="ri-account-circle-line text-3xl text-blue-700"></i>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'account' ? 'border-blue-700 bg-blue-700' : 'border-gray-300'
+                  <i className="ri-account-circle-line text-3xl text-brand"></i>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'account' ? 'border-brand bg-brand' : 'border-gray-300'
                     }`}>
                     {checkoutType === 'account' && <i className="ri-check-line text-white text-sm"></i>}
                   </div>
@@ -318,7 +374,7 @@ export default function CheckoutPage() {
                           type="text"
                           value={shippingData.firstName}
                           onChange={(e) => setShippingData({ ...shippingData, firstName: e.target.value })}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.firstName ? 'border-red-500' : 'border-gray-300'
                             }`}
                           placeholder="John"
                         />
@@ -332,7 +388,7 @@ export default function CheckoutPage() {
                           type="text"
                           value={shippingData.lastName}
                           onChange={(e) => setShippingData({ ...shippingData, lastName: e.target.value })}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.lastName ? 'border-red-500' : 'border-gray-300'
                             }`}
                           placeholder="Doe"
                         />
@@ -349,7 +405,7 @@ export default function CheckoutPage() {
                         value={shippingData.email}
                         readOnly={!!user} // Make read-only if logged in (optional, but safer)
                         onChange={(e) => setShippingData({ ...shippingData, email: e.target.value })}
-                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.email ? 'border-red-500' : 'border-gray-300'
                           } ${user ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         placeholder="you@example.com"
                       />
@@ -364,7 +420,7 @@ export default function CheckoutPage() {
                         type="tel"
                         value={shippingData.phone}
                         onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
-                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.phone ? 'border-red-500' : 'border-gray-300'
                           }`}
                         placeholder="+233 XX XXX XXXX"
                       />
@@ -379,7 +435,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={shippingData.address}
                         onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
-                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.address ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.address ? 'border-red-500' : 'border-gray-300'
                           }`}
                         placeholder="House number and street name"
                       />
@@ -395,7 +451,7 @@ export default function CheckoutPage() {
                           type="text"
                           value={shippingData.city}
                           onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.city ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${errors.city ? 'border-red-500' : 'border-gray-300'
                             }`}
                           placeholder="Accra"
                         />
@@ -408,7 +464,7 @@ export default function CheckoutPage() {
                         <select
                           value={shippingData.region}
                           onChange={(e) => setShippingData({ ...shippingData, region: e.target.value })}
-                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white ${errors.region ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand bg-white ${errors.region ? 'border-red-500' : 'border-gray-300'
                             }`}
                         >
                           <option value="">Select Region</option>
@@ -426,7 +482,7 @@ export default function CheckoutPage() {
                           type="checkbox"
                           checked={saveAddress}
                           onChange={(e) => setSaveAddress(e.target.checked)}
-                          className="w-5 h-5 text-blue-700 rounded border-gray-300 focus:ring-blue-500"
+                          className="w-5 h-5 text-brand rounded border-gray-300 focus:ring-brand"
                         />
                         <span className="text-sm text-gray-700">Save this address for future orders</span>
                       </label>
@@ -435,7 +491,7 @@ export default function CheckoutPage() {
 
                   <button
                     onClick={handleContinueToDelivery}
-                    className="w-full mt-6 bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                    className="w-full mt-6 bg-brand-accent hover:bg-brand-accentDark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
                   >
                     Continue to Delivery
                   </button>
@@ -450,7 +506,7 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">Delivery Method</h2>
                   <div className="space-y-4">
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'pickup' ? 'border-blue-700 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'pickup' ? 'border-brand bg-brand-soft' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
                         <input
@@ -459,17 +515,17 @@ export default function CheckoutPage() {
                           value="pickup"
                           checked={deliveryMethod === 'pickup'}
                           onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="w-5 h-5 text-blue-700"
+                          className="w-5 h-5 text-brand"
                         />
                         <div>
                           <p className="font-semibold text-gray-900">Store Pickup</p>
                           <p className="text-sm text-gray-600">Pick up from our store — Ready in 24 hours</p>
                         </div>
                       </div>
-                      <p className="font-bold text-blue-700">FREE</p>
+                      <p className="font-bold text-brand">FREE</p>
                     </label>
 
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'doorstep' ? 'border-blue-700 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'doorstep' ? 'border-brand bg-brand-soft' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
                         <input
@@ -478,7 +534,7 @@ export default function CheckoutPage() {
                           value="doorstep"
                           checked={deliveryMethod === 'doorstep'}
                           onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="w-5 h-5 text-blue-700"
+                          className="w-5 h-5 text-brand"
                         />
                         <div>
                           <p className="font-semibold text-gray-900">Doorstep Delivery</p>
@@ -489,10 +545,10 @@ export default function CheckoutPage() {
                     </label>
 
                     {/* Comprehensive delivery options - to be re-enabled later
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'accra' ? 'border-blue-700 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'accra' ? 'border-brand bg-brand-soft' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
-                        <input type="radio" name="delivery" value="accra" checked={deliveryMethod === 'accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-blue-700" />
+                        <input type="radio" name="delivery" value="accra" checked={deliveryMethod === 'accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-brand" />
                         <div>
                           <p className="font-semibold text-gray-900">Accra Delivery</p>
                           <p className="text-sm text-gray-600">Delivery within Accra</p>
@@ -500,10 +556,10 @@ export default function CheckoutPage() {
                       </div>
                       <p className="font-bold text-gray-900">GH₵ 40.00</p>
                     </label>
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'outside-accra' ? 'border-blue-700 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'outside-accra' ? 'border-brand bg-brand-soft' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
-                        <input type="radio" name="delivery" value="outside-accra" checked={deliveryMethod === 'outside-accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-blue-700" />
+                        <input type="radio" name="delivery" value="outside-accra" checked={deliveryMethod === 'outside-accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-brand" />
                         <div>
                           <p className="font-semibold text-gray-900">Outside Accra Delivery</p>
                           <p className="text-sm text-gray-600">Delivery to bus stations (VIP, OA, STC, etc.)</p>
@@ -517,15 +573,126 @@ export default function CheckoutPage() {
                   <div className="flex flex-col-reverse md:flex-row gap-4 mt-6">
                     <button
                       onClick={() => setCurrentStep(1)}
+                      className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleContinueToPayment}
+                      className="flex-1 bg-brand-accent hover:bg-brand-accentDark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Continue to Payment
+                    </button>
+                  </div>
+                </div>
+
+
+              </>
+            )}
+
+            {currentStep === 3 && (
+              <>
+                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Plan</h2>
+                  <div className="grid md:grid-cols-2 gap-4 mb-8">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentPlan('full')}
+                      className={`p-5 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                        paymentPlan === 'full'
+                          ? 'border-brand bg-brand-soft'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-bold text-gray-900">Full Payment</h3>
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            paymentPlan === 'full' ? 'border-brand bg-brand' : 'border-gray-300'
+                          }`}
+                        >
+                          {paymentPlan === 'full' && <i className="ri-check-line text-white text-xs"></i>}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Pay the full amount now</p>
+                      <p className="text-xl font-bold text-brand">GH₵ {total.toFixed(2)}</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentPlan('deposit_50')}
+                      className={`p-5 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                        paymentPlan === 'deposit_50'
+                          ? 'border-brand bg-brand-soft'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-bold text-gray-900">50% Deposit</h3>
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            paymentPlan === 'deposit_50' ? 'border-brand bg-brand' : 'border-gray-300'
+                          }`}
+                        >
+                          {paymentPlan === 'deposit_50' && <i className="ri-check-line text-white text-xs"></i>}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">Pay half now, rest when goods arrive</p>
+                      <p className="text-xl font-bold text-brand-accent">GH₵ {amountDueNow.toFixed(2)} now</p>
+                      <p className="text-sm text-gray-500 mt-1">Balance: GH₵ {balanceDue.toFixed(2)}</p>
+                    </button>
+                  </div>
+
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
+                  {gateways.length === 0 ? (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
+                      <p className="text-sm text-amber-800">
+                        Online payment is temporarily unavailable. Please contact support to complete your order.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 mb-6">
+                      {gateways.map((gw) => (
+                        <label
+                          key={gw.id}
+                          className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            paymentGateway === gw.id
+                              ? 'border-brand bg-brand-soft'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <input
+                              type="radio"
+                              name="paymentGateway"
+                              value={gw.id}
+                              checked={paymentGateway === gw.id}
+                              onChange={() => setPaymentGateway(gw.id)}
+                              className="w-5 h-5 text-brand"
+                            />
+                            <div>
+                              <p className="font-semibold text-gray-900">{gw.label}</p>
+                              <p className="text-sm text-gray-600">Mobile Money &amp; Card</p>
+                            </div>
+                          </div>
+                          <i className="ri-bank-card-line text-2xl text-brand"></i>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col-reverse md:flex-row gap-4 mt-6">
+                    <button
+                      onClick={() => setCurrentStep(2)}
                       disabled={isLoading}
                       className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
                     >
                       Back
                     </button>
                     <button
-                      onClick={handleContinueToPayment}
-                      disabled={isLoading}
-                      className="flex-1 bg-[#25D366] hover:bg-[#1DA851] text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
+                      onClick={handlePlaceOrder}
+                      disabled={isLoading || !paymentGateway}
+                      className="flex-1 bg-brand-accent hover:bg-brand-accentDark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
                     >
                       {isLoading ? (
                         <>
@@ -536,20 +703,13 @@ export default function CheckoutPage() {
                           Processing...
                         </>
                       ) : (
-                        <>
-                          <i className="ri-whatsapp-line text-xl mr-2"></i>
-                          Complete Order on WhatsApp
-                        </>
+                        <>Pay GH₵ {amountDueNow.toFixed(2)} Now</>
                       )}
                     </button>
                   </div>
                 </div>
-
-
               </>
             )}
-
-            {/* Step 3 removed - payment now initiates directly from step 2 */}
           </div>
 
           <div className="lg:col-span-1">
@@ -559,6 +719,9 @@ export default function CheckoutPage() {
               shipping={shippingCost}
               tax={tax}
               total={total}
+              paymentPlan={currentStep >= 3 ? paymentPlan : undefined}
+              amountDueNow={currentStep >= 3 ? amountDueNow : undefined}
+              balanceDue={currentStep >= 3 ? balanceDue : undefined}
             />
           </div>
         </div>

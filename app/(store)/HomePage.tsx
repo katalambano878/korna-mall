@@ -8,37 +8,45 @@ import ProductCard, { type ColorVariant, getColorHex } from '@/components/Produc
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import ProductSlider, { type SliderProduct } from '@/components/ProductSlider';
 import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
-import NewsletterSection from '@/components/NewsletterSection';
 import { useCMS } from '@/context/CMSContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  fashion: '/hero-1.png',
+  beauty: '/hero-2.png',
+  activewear: '/hero-3.png',
+  home: '/shop-hero.png',
+  electronics: '/cart-hero.png',
+  accessories: '/contact-hero.png',
+};
 
 const heroSlides = [
   {
     image: '/hero-1.png',
-    tag: 'KORNA MALL',
-    heading: <>Your Mall, <br /><span className="italic font-light text-amber-200">Your Way</span></>,
-    subtext: 'Shop fashion, electronics, home essentials, and more — delivered across Accra and Ghana.',
-    cta: { text: 'Shop Now', href: '/shop' },
-    cta2: { text: 'Our Story', href: '/about' },
+    tag: 'Fashion',
+    heading: <>Style that <br /><span className="italic font-light text-brand-accent">Moves With You</span></>,
+    subtext: "Shop the latest women's fashion and everyday essentials - delivered across Accra and Ghana.",
+    cta: { text: 'Shop Fashion', href: '/shop' },
+    cta2: { text: 'Browse Categories', href: '/categories' },
     position: 'object-center',
   },
   {
     image: '/hero-2.png',
-    tag: 'Discover More',
-    heading: <>Curated <br /><span className="italic font-light text-amber-100">Collections</span></>,
-    subtext: 'Browse quality products from trusted sellers — all in one convenient online mall.',
-    cta: { text: 'Explore', href: '/categories' },
+    tag: 'Beauty',
+    heading: <>Fragrance <br /><span className="italic font-light text-brand-accent">Collection</span></>,
+    subtext: 'Discover premium scents and beauty picks curated for every mood.',
+    cta: { text: 'Shop Beauty', href: '/shop' },
     cta2: { text: 'Shop Now', href: '/shop' },
     position: 'object-center',
   },
   {
     image: '/hero-3.png',
-    tag: 'New Arrivals',
-    heading: <>Fresh <br /><span className="italic font-light text-amber-200">Favorites</span></>,
-    subtext: 'Be the first to discover our newest products and seasonal picks.',
-    cta: { text: 'Shop New', href: '/shop?sort=newest' },
-    cta2: { text: 'Learn More', href: '/about' },
-    position: 'object-center',
+    tag: 'Activewear',
+    heading: <>Move in <br /><span className="italic font-light text-brand-accent">Color</span></>,
+    subtext: 'Matching sets and everyday activewear for comfort, style, and performance.',
+    cta: { text: 'Shop Active', href: '/shop?sort=newest' },
+    cta2: { text: 'Our Story', href: '/about' },
+    position: 'object-[center_40%]',
   },
 ] as const;
 
@@ -49,6 +57,8 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [sliderProducts, setSliderProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [activeBestSellerFilter, setActiveBestSellerFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
   // Config State - Managed in Code
@@ -74,18 +84,17 @@ export default function HomePage() {
     banners?: Array<{ text: string; active: boolean }>;
   } = {
     hero: {
-      headline: 'KORNA MALL — Shop Online in Accra',
-      subheadline: 'Your trusted online mall in Accra. Quality products from fashion to electronics — delivered across Ghana at competitive prices.',
+      headline: 'KORNA MALL - Shop Online in Accra',
+      subheadline: 'Your trusted online mall in Accra. Quality products from fashion to electronics - delivered across Ghana at competitive prices.',
       primaryButtonText: 'Shop Collections',
       primaryButtonLink: '/shop',
       secondaryButtonText: 'Our Story',
       secondaryButtonLink: '/about',
-      // backgroundImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop' // Optional override
     },
     banners: [
-      { text: '🚚 Free delivery on orders over GH₵ 500 within Accra!', active: false },
-      { text: '✨ New stock arriving this weekend - Pre-order now!', active: false },
-      { text: '💳 Secure payments via Mobile Money & Card', active: false }
+      { text: 'Free delivery on orders over GHS 500 within Accra!', active: false },
+      { text: 'New stock arriving this weekend - Pre-order now!', active: false },
+      { text: 'Secure payments via Mobile Money and Card', active: false }
     ]
   };
 
@@ -115,7 +124,7 @@ export default function HomePage() {
         if (sliderError) throw sliderError;
         setSliderProducts(sliderData || []);
 
-        // Fetch featured categories (featured is stored in metadata JSONB)
+        // Fetch categories (featured is stored in metadata JSONB)
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('id, name, slug, image_url, metadata')
@@ -124,8 +133,11 @@ export default function HomePage() {
 
         if (categoriesError) throw categoriesError;
 
+        const activeCategories = categoriesData || [];
+        setAllCategories(activeCategories);
+
         // Filter by metadata.featured = true on client side
-        const featuredCategories = (categoriesData || []).filter(
+        const featuredCategories = activeCategories.filter(
           (cat: any) => cat.metadata?.featured === true
         );
         setCategories(featuredCategories);
@@ -145,7 +157,7 @@ export default function HomePage() {
     return '/image.jpg';
   };
 
-  const mapProductToSlider = (product: any): SliderProduct => {
+  const mapProductToSlider = (product: any): SliderProduct & { category?: string; categorySlug?: string } => {
     const variants = product.product_variants || [];
     const hasVariants = variants.length > 0;
     const minVariantPrice = hasVariants
@@ -169,6 +181,8 @@ export default function HomePage() {
       }
     }
 
+    const categoryMatch = allCategories.find((c) => c.id === product.category_id);
+
     return {
       id: product.id,
       slug: product.slug,
@@ -185,15 +199,28 @@ export default function HomePage() {
       hasVariants,
       minVariantPrice,
       colorVariants,
+      category: categoryMatch?.name,
+      categorySlug: categoryMatch?.slug,
     };
   };
+
+  const bestSellerFilters = [
+    { id: 'all', label: 'All' },
+    ...allCategories.slice(0, 8).map((c) => ({ id: c.slug as string, label: c.name as string })),
+  ];
+
+  const filteredBestSellers = featuredProducts.filter((product) => {
+    if (activeBestSellerFilter === 'all') return true;
+    const cat = allCategories.find((c) => c.id === product.category_id);
+    return cat?.slug === activeBestSellerFilter;
+  });
 
   const renderBanners = () => {
     const activeBanners = config.banners?.filter(b => b.active) || [];
     if (activeBanners.length === 0) return null;
 
     return (
-      <div className="bg-blue-900 text-white py-2 overflow-hidden relative">
+      <div className="bg-brand-dark text-white py-2 overflow-hidden relative">
         <div className="flex animate-marquee whitespace-nowrap">
           {activeBanners.concat(activeBanners).map((banner, index) => (
             <span key={index} className="mx-8 text-sm font-medium tracking-wide flex items-center">
@@ -270,7 +297,7 @@ export default function HomePage() {
                 <div className={`flex flex-col sm:flex-row items-center justify-center gap-6 transition-all duration-700 delay-400 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                   <Link
                     href={slide.cta.href}
-                    className="group relative px-10 py-4 bg-white text-gray-950 rounded-full font-medium text-lg overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:bg-gray-100 hover:scale-105"
+                    className="group relative px-10 py-4 bg-brand-accent hover:bg-brand-accentDark text-white rounded-full font-medium text-lg overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(242,140,40,0.45)] hover:scale-105"
                   >
                     <span className="relative z-10 flex items-center gap-2">
                       {slide.cta.text} <i className="ri-arrow-right-line transition-transform group-hover:translate-x-1"></i>
@@ -291,8 +318,7 @@ export default function HomePage() {
         ))}
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-10 sm:bottom-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-3 rounded-full bg-black/10 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
-          {/* Extremely subtle interior shine */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-3 rounded-full bg-black/10 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
           {heroSlides.map((_, i) => (
@@ -307,27 +333,23 @@ export default function HomePage() {
             />
           ))}
         </div>
-
-        {/* Decoration */}
-        <div className="absolute bottom-10 right-6 md:right-16 z-20 hidden md:block">
-          <div className="text-white/40 text-sm font-light tracking-widest vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
-            KORNA MALL
-          </div>
-        </div>
-
       </section>
 
       {/* Categories Section */}
-      {/* Categories Section */}
-      <section className="py-20 md:py-32 bg-gray-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <AnimatedSection className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 gap-6 text-center md:text-left">
+      <section className="py-16 md:py-24 bg-brand-soft">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatedSection className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-14 text-center md:text-left">
             <div>
-              <span className="inline-block py-1 px-4 rounded-full bg-gray-100 text-gray-500 font-semibold text-xs tracking-widest uppercase mb-4 border border-gray-200">Collections</span>
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 tracking-tight">Shop by <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-gray-800 to-indigo-600">Category</span></h2>
+              <p className="text-[13px] sm:text-sm text-stone-400 font-medium mb-2">Collections.</p>
+              <h2 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold tracking-tight text-brand-ink leading-tight">
+                Shop by <span className="text-brand-accent">Category</span>
+              </h2>
             </div>
-            <Link href="/categories" className="group hidden md:flex items-center gap-2 bg-white px-8 py-3.5 rounded-full text-gray-900 font-bold text-sm transition-all duration-500 shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300">
-              Explore All <i className="ri-arrow-right-up-line transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1"></i>
+            <Link
+              href="/categories"
+              className="group hidden md:inline-flex self-start md:self-auto items-center gap-2 bg-brand-accent hover:bg-brand-accentDark text-white px-6 sm:px-7 py-3 rounded-full text-sm font-semibold transition-colors shadow-sm"
+            >
+              Explore All <i className="ri-arrow-right-up-line transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
             </Link>
           </AnimatedSection>
 
@@ -339,10 +361,15 @@ export default function HomePage() {
                   {/* Image scaling and styling */}
                   <div className="absolute inset-0 bg-gray-50"></div>
                   <Image
-                    src={category.image || category.image_url || 'https://via.placeholder.com/600x800?text=' + encodeURIComponent(category.name)}
+                    src={
+                      CATEGORY_IMAGES[category.slug] ||
+                      category.image_url ||
+                      category.image ||
+                      '/categories-hero.png'
+                    }
                     alt={category.name}
                     fill
-                    className="object-cover object-center transition-all duration-[1500ms] group-hover:scale-105 opacity-90 group-hover:opacity-100 mix-blend-multiply"
+                    className="object-cover object-center transition-all duration-[1500ms] group-hover:scale-105 opacity-90 group-hover:opacity-100"
                     sizes="(max-width: 768px) 50vw, 25vw"
                     quality={85}
                     loading="lazy"
@@ -377,19 +404,54 @@ export default function HomePage() {
           </AnimatedGrid>
 
           <div className="mt-12 flex justify-center md:hidden">
-            <Link href="/categories" className="group flex items-center justify-center gap-2 bg-gray-900 text-white w-full px-8 py-4 rounded-xl font-bold text-sm transition-all duration-500 shadow-md">
-              Explore All <i className="ri-arrow-right-up-line transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1"></i>
+            <Link
+              href="/categories"
+              className="group inline-flex w-full items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accentDark text-white px-6 py-3.5 rounded-full font-semibold text-sm transition-colors shadow-sm"
+            >
+              Explore All <i className="ri-arrow-right-up-line transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16 md:py-24 bg-stone-50">
+      {/* Best Sellers */}
+      <section className="py-16 md:py-24 bg-white border-t border-stone-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSection className="text-center mb-16">
-            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4">Featured Products</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Top picks from our latest arrivals</p>
+          <AnimatedSection className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8 md:mb-10">
+            <div>
+              <p className="text-[13px] sm:text-sm text-stone-400 font-medium mb-2">Our Products.</p>
+              <h2 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold tracking-tight text-brand-ink leading-tight">
+                Our <span className="text-brand-accent">Best Sellers</span> Products.
+              </h2>
+            </div>
+            <Link
+              href="/shop"
+              className="inline-flex self-start md:self-auto items-center justify-center bg-brand-accent hover:bg-brand-accentDark text-white px-6 sm:px-7 py-3 rounded-full text-sm font-semibold transition-colors shadow-sm"
+            >
+              View All Products
+            </Link>
+          </AnimatedSection>
+
+          <AnimatedSection className="mb-10 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-5 sm:gap-7 min-w-max pb-1">
+              {bestSellerFilters.map((filter) => {
+                const active = activeBestSellerFilter === filter.id;
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setActiveBestSellerFilter(filter.id)}
+                    className={`text-sm sm:text-[15px] font-medium transition-all whitespace-nowrap ${
+                      active
+                        ? 'bg-brand text-white px-4 py-1.5 rounded-full shadow-sm'
+                        : 'text-stone-500 hover:text-brand-ink'
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+            </div>
           </AnimatedSection>
 
           {loading ? (
@@ -398,27 +460,37 @@ export default function HomePage() {
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
-          ) : (
+          ) : filteredBestSellers.length > 0 ? (
             <AnimatedGrid className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} {...mapProductToSlider(product)} />
-              ))}
+              {filteredBestSellers.slice(0, 8).map((product) => {
+                const mapped = mapProductToSlider(product);
+                return (
+                  <ProductCard
+                    key={product.id}
+                    {...mapped}
+                    category={mapped.category}
+                    variant="showcase"
+                  />
+                );
+              })}
             </AnimatedGrid>
+          ) : (
+            <div className="rounded-[1.5rem] border border-dashed border-stone-200 bg-stone-50 px-6 py-16 text-center">
+              <p className="text-stone-500 text-sm sm:text-base">
+                {activeBestSellerFilter === 'all'
+                  ? 'Best sellers will appear here once products are added.'
+                  : 'No products in this category yet.'}
+              </p>
+              <Link href="/shop" className="inline-flex mt-5 text-brand font-semibold text-sm hover:underline">
+                Browse the shop
+              </Link>
+            </div>
           )}
-
-          <div className="text-center mt-16">
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center bg-gray-900 text-white px-10 py-4 rounded-full font-medium hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 btn-animate"
-            >
-              View All Products
-            </Link>
-          </div>
         </div>
       </section>
 
       {/* Product Slider */}
-      <section className="py-16 md:py-24 bg-white border-t border-stone-100">
+      <section className="py-16 md:py-24 bg-white border-t border-stone-100 mb-8 md:mb-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12 md:mb-16">
             <span className="inline-block py-1 px-4 rounded-full bg-stone-100 text-gray-500 font-semibold text-xs tracking-widest uppercase mb-4 border border-stone-200">
@@ -449,9 +521,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-      {/* Newsletter - Homepage Only */}
-      <NewsletterSection />
 
     </main>
   );

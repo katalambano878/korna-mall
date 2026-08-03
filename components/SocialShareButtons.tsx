@@ -48,7 +48,7 @@ export default function SocialShareButtons({ url, title, description, image }: S
     <div className="relative">
       <button
         onClick={() => setShowShareMenu(!showShareMenu)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-brand hover:bg-brand-soft transition-colors"
       >
         <i className="ri-share-line text-lg"></i>
         <span className="font-medium">Share</span>
@@ -157,7 +157,7 @@ export default function SocialShareButtons({ url, title, description, image }: S
                 />
                 <button
                   onClick={handleCopyLink}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                  className="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg font-medium transition-colors whitespace-nowrap"
                 >
                   {copied ? (
                     <>

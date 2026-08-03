@@ -47,10 +47,10 @@ export default function CartSuggestions() {
   ];
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-100 rounded-lg p-6 mb-6">
+    <div className="bg-brand-soft border-2 border-brand/20 rounded-lg p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-900">You Might Also Like</h3>
-        <span className="text-sm text-blue-700 font-medium whitespace-nowrap">Boost Your Order</span>
+        <span className="text-sm text-brand font-medium whitespace-nowrap">Boost Your Order</span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -63,7 +63,7 @@ export default function CartSuggestions() {
                 className="w-full h-full object-cover object-top transition-transform duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-[1.03]"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] hidden lg:flex z-20 bg-black/[0.02] backdrop-blur-[2px]">
-                <button className="bg-white/95 backdrop-blur-2xl text-gray-900 border border-white/40 hover:bg-gray-900 hover:text-white hover:border-gray-900 px-6 py-3.5 rounded-full text-[10px] uppercase tracking-[0.2em] font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-500 flex items-center justify-center space-x-2 translate-y-4 group-hover:translate-y-0">
+                <button className="bg-white/95 backdrop-blur-2xl text-gray-900 border border-white/40 hover:bg-brand-accent hover:text-white hover:border-brand-accent px-6 py-3.5 rounded-full text-[10px] uppercase tracking-[0.2em] font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-500 flex items-center justify-center space-x-2 translate-y-4 group-hover:translate-y-0">
                   <span>Quick Add</span>
                 </button>
               </div>

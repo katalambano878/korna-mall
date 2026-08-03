@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FAF7F2",
-  "theme_color": "#1C1917",
+  "background_color": "#FFFFFF",
+  "theme_color": "#153B6D",
   "dir": "ltr",
   "lang": "en",
   "categories": [
@@ -16,10 +16,22 @@
   ],
   "icons": [
     {
-      "src": "/favicon.png",
-      "sizes": "any",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -30,8 +42,8 @@
       "url": "/shop?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/favicon.png",
-          "sizes": "any"
+          "src": "/icon-192.png",
+          "sizes": "192x192"
         }
       ]
     },
@@ -42,8 +54,8 @@
       "url": "/cart?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/favicon.png",
-          "sizes": "any"
+          "src": "/icon-192.png",
+          "sizes": "192x192"
         }
       ]
     },
@@ -54,8 +66,8 @@
       "url": "/order-tracking?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/favicon.png",
-          "sizes": "any"
+          "src": "/icon-192.png",
+          "sizes": "192x192"
         }
       ]
     },
@@ -66,8 +78,8 @@
       "url": "/account?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/favicon.png",
-          "sizes": "any"
+          "src": "/icon-192.png",
+          "sizes": "192x192"
         }
       ]
     }

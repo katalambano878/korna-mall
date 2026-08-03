@@ -55,6 +55,7 @@ const PUBLIC_RPC = new Set(["upsert_customer_from_order"]);
 /** RPCs reserved for admin/staff/service_role. */
 const STAFF_RPC = new Set([
   "mark_order_paid",
+  "apply_order_payment",
   "update_customer_stats",
   "reduce_stock_on_order",
   "get_all_customer_emails",

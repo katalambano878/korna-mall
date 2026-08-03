@@ -63,6 +63,10 @@ async function handleTrack(body: { orderNumber?: string; email?: string }) {
       order_number,
       status,
       payment_status,
+      payment_plan,
+      amount_due_now,
+      amount_paid,
+      balance_due,
       total,
       email,
       created_at,
@@ -111,7 +115,7 @@ async function handlePay(body: { orderId?: string }) {
   }
 
   const select =
-    'id, order_number, total, currency, subtotal, shipping_total, discount_total, payment_status, email, phone, shipping_address, created_at, metadata';
+    'id, order_number, total, currency, subtotal, shipping_total, discount_total, payment_status, payment_plan, amount_due_now, amount_paid, balance_due, payment_provider, email, phone, shipping_address, created_at, metadata';
 
   let data: Record<string, unknown> | null = null;
   let error: { message?: string } | null = null;
@@ -144,6 +148,11 @@ async function handlePay(body: { orderId?: string }) {
     shipping_total: data.shipping_total,
     discount_total: data.discount_total,
     payment_status: data.payment_status,
+    payment_plan: data.payment_plan,
+    amount_due_now: data.amount_due_now,
+    amount_paid: data.amount_paid,
+    balance_due: data.balance_due,
+    payment_provider: data.payment_provider,
     email: maskEmail(String(data.email || '')),
     phone: maskPhone(String(data.phone || '')),
     shipping_address: data.shipping_address
@@ -152,6 +161,9 @@ async function handlePay(body: { orderId?: string }) {
     created_at: data.created_at,
     metadata: {
       moolre_external_ref: (data.metadata as any)?.moolre_external_ref || null,
+      hubtel_client_reference: (data.metadata as any)?.hubtel_client_reference || null,
+      payment_gateway: (data.metadata as any)?.payment_gateway || null,
+      first_name: (data.metadata as any)?.first_name || null,
     },
   };
 
@@ -178,6 +190,10 @@ async function handleSuccess(body: { orderNumber?: string; email?: string }) {
       order_number,
       status,
       payment_status,
+      payment_plan,
+      amount_due_now,
+      amount_paid,
+      balance_due,
       total,
       currency,
       subtotal,

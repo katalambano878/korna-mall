@@ -192,7 +192,7 @@ export function organizationSchema() {
     name: SITE_SHORT_NAME,
     legalName: SITE_NAME,
     url: SITE_URL,
-    logo: absoluteUrl('/logo.svg'),
+    logo: absoluteUrl('/logo.png'),
     description: SITE_DESCRIPTION,
     ...(SITE_EMAIL ? { email: SITE_EMAIL } : {}),
     telephone: `+233${SITE_PHONE.replace(/^0/, '')}`,

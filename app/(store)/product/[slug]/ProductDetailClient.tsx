@@ -229,7 +229,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     return (
       <div className="min-h-screen bg-white py-12 flex justify-center items-center">
         <div className="text-center">
-          <i className="ri-loader-4-line text-4xl text-blue-700 animate-spin mb-4 block"></i>
+          <i className="ri-loader-4-line text-4xl text-brand animate-spin mb-4 block"></i>
           <p className="text-gray-500">Loading product...</p>
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       <div className="min-h-screen bg-white py-20 flex justify-center items-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
-          <Link href="/shop" className="text-blue-700 hover:underline">Return to Shop</Link>
+          <Link href="/shop" className="text-brand hover:underline">Return to Shop</Link>
         </div>
       </div>
     );
@@ -280,11 +280,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         <section className="py-8 bg-gray-50 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <nav className="flex items-center space-x-2 text-sm flex-wrap gap-y-2">
-              <Link href="/" className="text-gray-600 hover:text-blue-700 transition-colors">Home</Link>
+              <Link href="/" className="text-gray-600 hover:text-brand transition-colors">Home</Link>
               <i className="ri-arrow-right-s-line text-gray-400"></i>
-              <Link href="/shop" className="text-gray-600 hover:text-blue-700 transition-colors">Shop</Link>
+              <Link href="/shop" className="text-gray-600 hover:text-brand transition-colors">Shop</Link>
               <i className="ri-arrow-right-s-line text-gray-400"></i>
-              <Link href="#" className="text-gray-600 hover:text-blue-700 transition-colors">{product.category}</Link>
+              <Link href="#" className="text-gray-600 hover:text-brand transition-colors">{product.category}</Link>
               <i className="ri-arrow-right-s-line text-gray-400"></i>
               <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</span>
             </nav>
@@ -318,7 +318,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-blue-700 shadow-md' : 'border-gray-200 hover:border-gray-300'
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-brand shadow-md' : 'border-gray-200 hover:border-gray-300'
                           }`}
                       >
                         <Image
@@ -588,7 +588,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <div className="flex flex-col sm:flex-row gap-3.5 mb-10">
                   <button
                     disabled={activeStock === 0 || needsVariantSelection || needsColorSelection}
-                    className={`flex-1 group relative overflow-hidden bg-gray-900 text-white py-4 px-6 rounded-xl font-medium transition-all duration-500 flex items-center justify-center space-x-2.5 text-[15px] shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 whitespace-nowrap cursor-pointer ${(activeStock === 0 || needsVariantSelection || needsColorSelection) ? 'opacity-50 cursor-not-allowed hover:-translate-y-0' : ''}`}
+                    className={`flex-1 group relative overflow-hidden bg-brand-accent hover:bg-brand-accentDark text-white py-4 px-6 rounded-xl font-medium transition-all duration-500 flex items-center justify-center space-x-2.5 text-[15px] shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 whitespace-nowrap cursor-pointer ${(activeStock === 0 || needsVariantSelection || needsColorSelection) ? 'opacity-50 cursor-not-allowed hover:-translate-y-0' : ''}`}
                     onClick={handleAddToCart}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
@@ -639,7 +639,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`pb-4 font-semibold transition-colors relative whitespace-nowrap cursor-pointer ${activeTab === tab
-                      ? 'text-blue-700 border-b-2 border-blue-700'
+                      ? 'text-brand border-b-2 border-brand'
                       : 'text-gray-600 hover:text-gray-900'
                       }`}
                   >
@@ -661,7 +661,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <ul className="grid md:grid-cols-2 gap-4">
                   {product.features.map((feature: string, index: number) => (
                     <li key={index} className="flex items-start">
-                      <i className="ri-checkbox-circle-fill text-blue-700 text-xl mr-3 mt-1"></i>
+                      <i className="ri-checkbox-circle-fill text-brand text-xl mr-3 mt-1"></i>
                       <span className="text-gray-700 text-lg">{feature}</span>
                     </li>
                   ))}

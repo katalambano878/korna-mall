@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
 import { verifyAccessToken } from '@/lib/db/auth';
 import { isPlainPostgres } from '@/lib/db/mode';
+import { computePaymentPlan, type PaymentPlan } from '@/lib/payments/plans';
+import { isGatewayConfigured, parseGateway } from '@/lib/payments/gateways';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -51,7 +53,16 @@ export async function POST(req: Request) {
     const city = String(shipping.city || '').trim();
     const region = String(shipping.region || '').trim();
     const deliveryMethod = String(body.deliveryMethod || 'pickup');
-    const paymentMethod = String(body.paymentMethod || 'whatsapp');
+    const paymentPlanRaw = String(body.paymentPlan || 'full');
+    const paymentPlan: PaymentPlan = paymentPlanRaw === 'deposit_50' ? 'deposit_50' : 'full';
+    const paymentGateway = parseGateway(body.paymentGateway || body.paymentMethod);
+    if (!paymentGateway || !isGatewayConfigured(paymentGateway)) {
+      return NextResponse.json(
+        { success: false, message: 'Select a configured online payment gateway (Moolre or Hubtel)' },
+        { status: 400 }
+      );
+    }
+    const paymentMethod = paymentGateway;
 
     if (!email || !phone || !firstName || !lastName || !address || !city || !region) {
       return NextResponse.json({ success: false, message: 'Incomplete shipping details' }, { status: 400 });
@@ -170,6 +181,7 @@ export async function POST(req: Request) {
     const shippingCost = 0;
     const tax = 0;
     const total = Math.round((subtotal + shippingCost + tax) * 100) / 100;
+    const planBreakdown = computePaymentPlan(total, paymentPlan);
 
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const trackingId = Array.from({ length: 6 }, () =>
@@ -195,7 +207,7 @@ export async function POST(req: Request) {
           user_id: userId,
           email,
           phone,
-          status: 'pending',
+          status: 'awaiting_payment',
           payment_status: 'pending',
           currency: 'GHS',
           subtotal,
@@ -203,8 +215,13 @@ export async function POST(req: Request) {
           shipping_total: shippingCost,
           discount_total: 0,
           total,
+          payment_plan: planBreakdown.plan,
+          amount_due_now: planBreakdown.amountDueNow,
+          amount_paid: 0,
+          balance_due: planBreakdown.balanceDue,
           shipping_method: deliveryMethod,
           payment_method: paymentMethod,
+          payment_provider: paymentGateway,
           shipping_address: shippingAddress,
           billing_address: shippingAddress,
           metadata: {
@@ -213,10 +230,14 @@ export async function POST(req: Request) {
             last_name: lastName,
             tracking_number: trackingNumber,
             checkout_source: 'server_checkout',
+            payment_gateway: paymentGateway,
+            payment_plan: planBreakdown.plan,
           },
         },
       ])
-      .select('id, order_number, total, payment_status, status, metadata')
+      .select(
+        'id, order_number, total, payment_status, status, payment_plan, amount_due_now, amount_paid, balance_due, metadata'
+      )
       .single();
 
     if (orderError || !order) {
@@ -260,6 +281,11 @@ export async function POST(req: Request) {
         tracking_number: trackingNumber,
         payment_status: order.payment_status,
         status: order.status,
+        payment_plan: order.payment_plan,
+        amount_due_now: order.amount_due_now,
+        amount_paid: order.amount_paid,
+        balance_due: order.balance_due,
+        payment_gateway: paymentGateway,
       },
     });
   } catch (err: any) {

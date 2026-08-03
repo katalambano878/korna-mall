@@ -35,7 +35,7 @@ export default function RecentlyViewed() {
               localStorage.removeItem('recentlyViewed');
               setRecentProducts([]);
             }}
-            className="text-sm text-blue-700 hover:text-blue-800 font-medium whitespace-nowrap"
+            className="text-sm text-brand hover:text-brand font-medium whitespace-nowrap"
           >
             Clear History
           </button>

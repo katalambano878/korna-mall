@@ -1,5 +1,5 @@
-// KORNA MALL Service Worker v2.1
-const CACHE_VERSION = 'sl-v2.1';
+// KORNA MALL Service Worker v2.2 — bust stale logo/hero caches
+const CACHE_VERSION = 'sl-v2.2';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
@@ -223,8 +223,8 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body || 'New update from KORNA MALL',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/icon-192.png',
+    badge: '/favicon.png',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/',

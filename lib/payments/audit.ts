@@ -22,6 +22,7 @@ export async function recordPaymentAttempt(input: {
   internalReference: string;
   amountExpected: number;
   currency?: string;
+  purpose?: 'full' | 'deposit' | 'balance' | 'admin_settle';
   initiationPayload?: Record<string, unknown>;
 }): Promise<void> {
   if (!isPlainPostgres()) return;
@@ -29,11 +30,13 @@ export async function recordPaymentAttempt(input: {
     await query(
       `INSERT INTO payment_attempts (
         order_id, order_number, user_id, gateway, internal_reference,
-        amount_expected, currency, status, initiation_payload
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,'pending',$8)
+        amount_expected, currency, status, initiation_payload, purpose
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,'pending',$8,$9)
       ON CONFLICT (internal_reference) DO UPDATE SET
         updated_at = NOW(),
-        retry_count = payment_attempts.retry_count + 1`,
+        retry_count = payment_attempts.retry_count + 1,
+        purpose = EXCLUDED.purpose,
+        amount_expected = EXCLUDED.amount_expected`,
       [
         input.orderId,
         input.orderNumber,
@@ -43,6 +46,7 @@ export async function recordPaymentAttempt(input: {
         input.amountExpected,
         input.currency || 'GHS',
         JSON.stringify(input.initiationPayload || {}),
+        input.purpose || 'full',
       ]
     );
   } catch (err: any) {
@@ -117,15 +121,29 @@ export async function updatePaymentAttemptStatus(input: {
   if (!isPlainPostgres()) return;
   try {
     if (input.internalReference) {
+      // Never demote a successful attempt via application UPDATE either
+      // (DB trigger is the second line of defense).
       await query(
         `UPDATE payment_attempts SET
-          status = $2,
+          status = CASE
+            WHEN status = 'successful' AND $2::text <> 'successful' THEN status
+            ELSE $2
+          END,
           gateway_reference = COALESCE($3, gateway_reference),
           amount_paid = COALESCE($4, amount_paid),
-          failure_reason = COALESCE($5, failure_reason),
+          failure_reason = CASE
+            WHEN status = 'successful' AND $2::text <> 'successful' THEN failure_reason
+            ELSE COALESCE($5, failure_reason)
+          END,
           callback_received_at = NOW(),
-          verified_at = CASE WHEN $2 = 'successful' THEN NOW() ELSE verified_at END,
-          verification_status = CASE WHEN $2 = 'successful' THEN 'verified' ELSE verification_status END,
+          verified_at = CASE
+            WHEN $2 = 'successful' OR status = 'successful' THEN COALESCE(verified_at, NOW())
+            ELSE verified_at
+          END,
+          verification_status = CASE
+            WHEN $2 = 'successful' OR status = 'successful' THEN 'verified'
+            ELSE verification_status
+          END,
           updated_at = NOW()
          WHERE internal_reference = $1 OR order_number = regexp_replace($1, '-R\\d+$', '')`,
         [

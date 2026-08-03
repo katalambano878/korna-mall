@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import LazyImage from './LazyImage';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 
 // Map common color names to hex values for swatches
 const COLOR_MAP: Record<string, string> = {
@@ -26,7 +27,6 @@ const COLOR_MAP: Record<string, string> = {
 export function getColorHex(colorName: string): string | null {
   const lower = colorName.toLowerCase().trim();
   if (COLOR_MAP[lower]) return COLOR_MAP[lower];
-  // Try partial match (e.g. "Light Blue" -> "blue")
   for (const [key, val] of Object.entries(COLOR_MAP)) {
     if (lower.includes(key)) return val;
   }
@@ -54,8 +54,11 @@ interface ProductCardProps {
   hasVariants?: boolean;
   minVariantPrice?: number;
   colorVariants?: ColorVariant[];
+  category?: string;
   /** Tighter typography/badges for dense grids (e.g. 4-up on mobile) */
   compact?: boolean;
+  /** Best-sellers showcase layout (matches homepage design) */
+  variant?: 'default' | 'showcase';
 }
 
 export default function ProductCard({
@@ -74,15 +77,120 @@ export default function ProductCard({
   hasVariants = false,
   minVariantPrice,
   colorVariants = [],
-  compact = false
+  category,
+  compact = false,
+  variant = 'default',
 }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { addToWishlist } = useWishlist();
   const [activeColor, setActiveColor] = useState<string | null>(null);
   const displayPrice = hasVariants && minVariantPrice ? minVariantPrice : price;
   const discount = originalPrice ? Math.round((1 - displayPrice / originalPrice) * 100) : 0;
   const MAX_SWATCHES = 5;
-
   const formatPrice = (val: number) => `GH\u20B5${val.toFixed(2)}`;
+  const ratingDisplay = Number(rating || 0).toFixed(1);
+
+  if (variant === 'showcase') {
+    return (
+      <div className="group flex flex-col h-full">
+        <div className="relative aspect-[4/5] rounded-[1.35rem] overflow-hidden bg-[#F3F1EC] mb-3.5">
+          <Link href={`/product/${slug}`} className="absolute inset-0 block">
+            <LazyImage
+              src={image}
+              alt={name}
+              className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+          </Link>
+
+          {/* Discount badge */}
+          {(discount > 0 || badge) && (
+            <div className="absolute top-3 left-3 z-20">
+              <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
+                {discount > 0 ? `${discount}% off` : badge}
+              </span>
+            </div>
+          )}
+
+          {/* Vertical action icons */}
+          <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+            <button
+              type="button"
+              aria-label="Add to wishlist"
+              onClick={(e) => {
+                e.preventDefault();
+                addToWishlist({
+                  id,
+                  name,
+                  price: displayPrice,
+                  originalPrice,
+                  image,
+                  rating,
+                  reviewCount,
+                  badge,
+                  inStock,
+                  slug,
+                });
+              }}
+              className="w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-brand hover:bg-white transition"
+            >
+              <i className="ri-heart-line text-base" />
+            </button>
+            <Link
+              href={`/product/${slug}`}
+              aria-label="View product"
+              className="w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-brand hover:bg-white transition"
+            >
+              <i className="ri-expand-diagonal-line text-base" />
+            </Link>
+            {!hasVariants && inStock && (
+              <button
+                type="button"
+                aria-label="Add to cart"
+                onClick={(e) => {
+                  e.preventDefault();
+                  addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
+                }}
+                className="w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-brand hover:bg-white transition"
+              >
+                <i className="ri-shopping-bag-3-line text-base" />
+              </button>
+            )}
+          </div>
+
+          {!inStock && (
+            <div className="absolute inset-0 bg-white/45 backdrop-blur-[1px] z-10 flex items-center justify-center">
+              <span className="bg-brand-ink/85 text-white text-xs px-3 py-1.5 rounded-full">Out of Stock</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="text-[12px] text-stone-400 font-medium truncate">
+            {category || 'KORNA MALL'}
+          </span>
+          <span className="inline-flex items-center gap-1 text-[12px] text-stone-600 shrink-0">
+            <i className="ri-star-fill text-amber-400 text-[13px]" />
+            {ratingDisplay}
+          </span>
+        </div>
+
+        <Link href={`/product/${slug}`}>
+          <h3 className="text-[15px] sm:text-[16px] font-semibold text-brand-ink leading-snug line-clamp-2 mb-2 hover:text-brand transition-colors">
+            {name}
+          </h3>
+        </Link>
+
+        <div className="flex items-baseline gap-2 mt-auto">
+          <span className="text-[15px] font-semibold text-brand-accent">
+            {hasVariants && minVariantPrice ? `From ${formatPrice(minVariantPrice)}` : formatPrice(price)}
+          </span>
+          {originalPrice ? (
+            <span className="text-[13px] text-stone-400 line-through">{formatPrice(originalPrice)}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="group flex flex-col h-full bg-transparent transition-all duration-300">
@@ -93,7 +201,6 @@ export default function ProductCard({
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Badges */}
         <div className={`absolute flex flex-col z-20 ${compact ? 'top-1.5 left-1.5 gap-1 sm:top-3 sm:left-3 sm:gap-2' : 'top-3 left-3 gap-2'}`}>
           {badge && (
             <span className={`bg-white/90 backdrop-blur-sm text-gray-900 uppercase tracking-wider font-bold rounded-full shadow-sm ${compact ? 'text-[7px] px-1.5 py-0.5 sm:text-[10px] sm:px-3 sm:py-1' : 'text-[10px] px-3 py-1'}`}>
@@ -107,7 +214,6 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-10">
             <span className={`bg-black/80 text-white rounded-full font-medium tracking-wide shadow-lg ${compact ? 'px-2 py-1 text-[9px] sm:px-4 sm:py-2 sm:text-sm' : 'px-4 py-2 text-sm'}`}>
@@ -116,11 +222,10 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Hover Actions */}
         {inStock && (
           <div className={`absolute bottom-3 left-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 lg:translate-y-2 lg:group-hover:translate-y-0 z-20 ${compact ? 'hidden sm:block' : ''}`}>
             {hasVariants ? (
-              <span className="w-full bg-[#0a1536] text-white hover:bg-black py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors">
+              <span className="w-full bg-brand-accent text-white hover:bg-brand-accentDark py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors">
                 <span>Configure</span>
               </span>
             ) : (
@@ -129,7 +234,7 @@ export default function ProductCard({
                   e.preventDefault();
                   addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
                 }}
-                className="w-full bg-[#0a1536] text-white hover:bg-black py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors"
+                className="w-full bg-brand-accent text-white hover:bg-brand-accentDark py-3 rounded-xl text-[13px] font-semibold flex items-center justify-center space-x-2 shadow-lg transition-colors"
               >
                 <i className="ri-shopping-cart-2-line text-base"></i>
                 <span>{moq > 1 ? `Add ${moq}` : 'Quick Add'}</span>
@@ -141,7 +246,7 @@ export default function ProductCard({
 
       <div className="flex flex-col flex-grow text-left">
         <Link href={`/product/${slug}`}>
-          <h3 className={`font-serif leading-snug text-[#2b3a69] hover:text-blue-800 transition-colors line-clamp-2 ${compact ? 'text-[11px] mb-0.5 sm:text-[17px] sm:mb-1.5' : 'text-[17px] mb-1.5'}`}>
+          <h3 className={`font-serif leading-snug text-brand-ink hover:text-brand transition-colors line-clamp-2 ${compact ? 'text-[11px] mb-0.5 sm:text-[17px] sm:mb-1.5' : 'text-[17px] mb-1.5'}`}>
             {name}
           </h3>
         </Link>

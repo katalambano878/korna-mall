@@ -18,21 +18,41 @@ export default async function CategoriesPage() {
     .eq('status', 'active')
     .order('position', { ascending: true });
 
+  const categoryImages: Record<string, string> = {
+    fashion: '/hero-1.png',
+    beauty: '/hero-2.png',
+    activewear: '/hero-3.png',
+    home: '/shop-hero.png',
+    electronics: '/cart-hero.png',
+    accessories: '/contact-hero.png',
+  };
+
   // Palette to cycle through for visual variety since DB doesn't have colors
   const palette = [
-    { color: 'from-blue-500 to-blue-700', icon: 'ri-store-2-line' },
-    { color: 'from-blue-500 to-blue-700', icon: 'ri-shopping-bag-3-line' },
+    { color: 'from-brand to-brand-dark', icon: 'ri-store-2-line' },
+    { color: 'from-brand to-brand-dark', icon: 'ri-shopping-bag-3-line' },
     { color: 'from-purple-500 to-purple-700', icon: 'ri-t-shirt-line' },
     { color: 'from-amber-500 to-amber-700', icon: 'ri-home-smile-line' },
     { color: 'from-rose-500 to-rose-700', icon: 'ri-heart-line' },
-    { color: 'from-indigo-500 to-indigo-700', icon: 'ri-star-smile-line' },
+    { color: 'from-brand to-brand-dark', icon: 'ri-star-smile-line' },
+  ];
+
+  const fallbackImages = [
+    '/about-hero.png',
+    '/blog-hero.png',
+    '/faqs-hero.png',
+    '/wishlist-hero.png',
+    '/categories-hero.png',
   ];
 
   const categories = categoriesData?.map((c, i) => {
     const style = palette[i % palette.length];
     return {
       ...c,
-      image: c.image_url || 'https://via.placeholder.com/600x400?text=Category',
+      image:
+        categoryImages[c.slug] ||
+        c.image_url ||
+        fallbackImages[i % fallbackImages.length],
       color: style.color,
       icon: style.icon,
       // Optional: Fetch product count if needed, currently skipping for performance/simplicity
@@ -82,7 +102,7 @@ export default async function CategoriesPage() {
 
                 {/* Content Section */}
                 <div className="px-5 py-6 sm:px-6 flex flex-col flex-1 relative z-20">
-                  <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-3 tracking-tight group-hover:text-blue-900 transition-colors duration-500">
+                  <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-3 tracking-tight group-hover:text-brand-dark transition-colors duration-500">
                     {category.name}
                   </h3>
                   <p className="text-gray-500 font-light leading-relaxed text-[15px] mb-8 line-clamp-2">
@@ -91,11 +111,11 @@ export default async function CategoriesPage() {
 
                   {/* Bottom Action Area */}
                   <div className="mt-auto pt-5 border-t border-gray-100/60 flex items-center justify-between">
-                    <span className="text-gray-900 font-semibold text-sm tracking-wide group-hover:text-blue-700 transition-colors duration-500">
+                    <span className="text-gray-900 font-semibold text-sm tracking-wide group-hover:text-brand transition-colors duration-500">
                       Explore Collection
                     </span>
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 group-hover:shadow-md transition-all duration-500 -rotate-45 group-hover:rotate-0">
-                      <i className="ri-arrow-right-line text-lg text-gray-400 group-hover:text-blue-600 transition-colors duration-500"></i>
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-brand-soft group-hover:shadow-md transition-all duration-500 -rotate-45 group-hover:rotate-0">
+                      <i className="ri-arrow-right-line text-lg text-gray-400 group-hover:text-brand transition-colors duration-500"></i>
                     </div>
                   </div>
                 </div>
@@ -114,18 +134,18 @@ export default async function CategoriesPage() {
       <div className="bg-white py-20 px-4 sm:px-6 lg:px-8 flex justify-center border-t border-gray-50">
         <div className="relative w-full max-w-5xl rounded-[3rem] overflow-hidden bg-gray-900 border border-gray-800 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] group">
           {/* Subtle elegant glow effects */}
-          <div className="absolute top-0 right-0 -m-32 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/30 transition-colors duration-1000"></div>
-          <div className="absolute bottom-0 left-0 -m-32 w-80 h-80 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-1000"></div>
+          <div className="absolute top-0 right-0 -m-32 w-96 h-96 bg-brand/20 rounded-full blur-[100px] pointer-events-none group-hover:bg-brand-dark/30 transition-colors duration-1000"></div>
+          <div className="absolute bottom-0 left-0 -m-32 w-80 h-80 bg-brand/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-brand-dark/20 transition-colors duration-1000"></div>
 
           {/* Glass Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50 pointer-events-none"></div>
 
           <div className="relative z-10 px-6 py-16 sm:p-20 text-center flex flex-col items-center">
             <div className="w-16 h-16 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex items-center justify-center mb-8 shadow-xl">
-              <i className="ri-search-eye-line text-3xl text-blue-300"></i>
+              <i className="ri-search-eye-line text-3xl text-brand-accent"></i>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 text-white tracking-tight">
-              Can't Find What You're <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-300 via-white to-blue-200">Looking For?</span>
+              Can't Find What You're <span className="text-transparent bg-clip-text bg-gradient-to-br from-brand-accent via-white to-brand-soft">Looking For?</span>
             </h2>
             <p className="text-lg text-gray-400 mb-10 leading-relaxed max-w-2xl font-light">
               Try our advanced search or contact our dedicated team for personalised product recommendations tailored to your style.
@@ -135,14 +155,14 @@ export default async function CategoriesPage() {
                 href="/shop"
                 className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-white text-gray-900 font-bold text-sm sm:text-base transition-all duration-500 hover:scale-105 shadow-[0_0_0_4px_rgba(255,255,255,0.05)] hover:shadow-[0_0_0_8px_rgba(255,255,255,0.1)]"
               >
-                <i className="ri-search-line text-blue-600"></i>
+                <i className="ri-search-line text-brand"></i>
                 <span>Search All Products</span>
               </Link>
               <Link
                 href="/contact"
                 className="group/btn2 relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-white/10 border border-white/20 text-white font-medium text-sm sm:text-base transition-all duration-500 hover:bg-white/20 hover:scale-105 backdrop-blur-md"
               >
-                <i className="ri-customer-service-2-line text-blue-300"></i>
+                <i className="ri-customer-service-2-line text-brand-accent"></i>
                 <span>Contact Support</span>
               </Link>
             </div>
