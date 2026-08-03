@@ -29,6 +29,7 @@ const heroSlides = [
     heading: <>Style that <br /><span className="italic font-light text-brand-accent">Moves With You</span></>,
     subtext: "Shop the latest women's fashion and everyday essentials - delivered across Accra and Ghana.",
     cta: { text: 'Shop Fashion', href: '/shop' },
+    cta2: { text: 'Browse Categories', href: '/categories' },
     position: 'object-center',
   },
   {
@@ -37,6 +38,7 @@ const heroSlides = [
     heading: <>Fragrance <br /><span className="italic font-light text-brand-accent">Collection</span></>,
     subtext: 'Discover premium scents and beauty picks curated for every mood.',
     cta: { text: 'Shop Beauty', href: '/shop' },
+    cta2: { text: 'Shop Now', href: '/shop' },
     position: 'object-center',
   },
   {
@@ -45,6 +47,7 @@ const heroSlides = [
     heading: <>Move in <br /><span className="italic font-light text-brand-accent">Color</span></>,
     subtext: 'Matching sets and everyday activewear for comfort, style, and performance.',
     cta: { text: 'Shop Active', href: '/shop?sort=newest' },
+    cta2: { text: 'Our Story', href: '/about' },
     position: 'object-[center_40%]',
   },
 ] as const;
@@ -303,6 +306,14 @@ export default function HomePage() {
                       {slide.cta.text} <i className="ri-arrow-right-line transition-transform group-hover:translate-x-1"></i>
                     </span>
                   </Link>
+                  {slide.cta2 && (
+                    <Link
+                      href={slide.cta2.href}
+                      className="group hidden sm:inline-flex px-10 py-4 bg-white/10 border border-white/30 text-white rounded-full font-medium text-lg backdrop-blur-md hover:bg-white/20 hover:border-white/50 transition-all hover:scale-105"
+                    >
+                      {slide.cta2.text}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
