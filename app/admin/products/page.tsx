@@ -66,17 +66,25 @@ export default function ProductsPage() {
 
       if (data) {
         // Transform data for UI
-        const transformedProducts = data.map((p: any) => ({
-          ...p,
-          category: p.categories?.name || 'Uncategorized',
-          image: p.product_images?.find((img: any) => img.position === 0)?.url
-            || p.product_images?.[0]?.url
-            || 'https://via.placeholder.com/300?text=No+Image',
-          variantsCount: p.product_variants?.[0]?.count || 0,
-          stock: p.quantity,
-          sales: 0, // Placeholder for now
-          rating: p.rating_avg || 0
-        }));
+        const transformedProducts = data.map((p: any) => {
+          const variantEmbed = p.product_variants;
+          const variantsCount = Array.isArray(variantEmbed)
+            ? (typeof variantEmbed[0]?.count === 'number'
+                ? variantEmbed[0].count
+                : variantEmbed.length)
+            : 0;
+          return {
+            ...p,
+            category: p.categories?.name || 'Uncategorized',
+            image: p.product_images?.find((img: any) => img.position === 0)?.url
+              || p.product_images?.[0]?.url
+              || 'https://via.placeholder.com/300?text=No+Image',
+            variantsCount,
+            stock: p.quantity,
+            sales: 0, // Placeholder for now
+            rating: p.rating_avg || 0
+          };
+        });
 
         setProducts(transformedProducts);
 
@@ -88,8 +96,11 @@ export default function ProductsPage() {
           active: transformedProducts.filter(p => p.status === 'active').length
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching products:', error);
+      setProducts([]);
+      setStats({ total: 0, lowStock: 0, outOfStock: 0, active: 0 });
+      alert('Failed to load products: ' + (error?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }

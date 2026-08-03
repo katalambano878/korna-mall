@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
             unit_price, 
             total_price,
             product_id,
-            products!inner(name, category_id, categories(name))
+            products(name, category_id, categories(name))
           `)
           .in('order_id', orderIds);
 

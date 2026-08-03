@@ -9,7 +9,7 @@ Runtime data plane is **plain PostgreSQL**. Supabase cloud is not required. The 
 | Supabase Feature | Previous Implementation | PostgreSQL Replacement | Status | Problem | Repair |
 | ---------------- | ----------------------- | ---------------------- | ------ | ------- | ------ |
 | Postgres DB | Hosted Supabase | fleet-postgres `store_korna` | Done | — | — |
-| PostgREST | Cloud REST | `app/rest/v1/*` + `supabase-compat` | Done | — | — |
+| PostgREST | Cloud REST | `app/rest/v1/*` + `supabase-compat` | Done | Aggregate `(count)` embeds + dotted related filters were incomplete | Fixed 2026-08-03 (count EXISTS, foreignTable order no-op) |
 | GoTrue Auth | Supabase Auth | `lib/db/auth.ts` + `app/auth/v1` | Done | — | — |
 | JWT | Supabase JWT | `AUTH_JWT_SECRET` (jose) | Done | — | — |
 | RLS | PG policies | App ACL `lib/db/rest-acl.ts` (owner bypasses RLS) | Done | RLS still enabled in DB | Leave policies; ACL is authoritative for HTTP |

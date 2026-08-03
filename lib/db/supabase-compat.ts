@@ -344,7 +344,13 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
     return this;
   }
 
-  order(col: string, opts?: { ascending?: boolean; nullsFirst?: boolean }) {
+  order(
+    col: string,
+    opts?: { ascending?: boolean; nullsFirst?: boolean; foreignTable?: string }
+  ) {
+    // PostgREST foreignTable ordering is applied during embed resolution
+    // (e.g. product_images.position). Ordering the parent by that column fails.
+    if (opts?.foreignTable) return this;
     this.orders.push({
       col,
       ascending: opts?.ascending !== false,
@@ -391,7 +397,15 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
             params.push(v);
             return `$${params.length}`;
           });
-          clauses.push(`${ident(f.col!)} IN (${ph.join(",")})`);
+          const inList = ph.join(",");
+          const embed = this.parseEmbedCol(f.col!);
+          if (embed) {
+            clauses.push(
+              this.embedExists(embed.table, `_e.${ident(embed.col)} IN (${inList})`)
+            );
+          } else {
+            clauses.push(`${ident(f.col!)} IN (${inList})`);
+          }
         }
       } else if (f.kind === "notIn") {
         const raw = String(f.value).replace(/^\(|\)$/g, "").trim();
@@ -401,7 +415,14 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
           params.push(v);
           return `$${params.length}`;
         });
-        clauses.push(`(${ident(f.col!)} IS NULL OR ${ident(f.col!)} NOT IN (${ph.join(",")}))`);
+        const embed = this.parseEmbedCol(f.col!);
+        if (embed) {
+          clauses.push(
+            `NOT ${this.embedExists(embed.table, `_e.${ident(embed.col)} IN (${ph.join(",")})`)}`
+          );
+        } else {
+          clauses.push(`(${ident(f.col!)} IS NULL OR ${ident(f.col!)} NOT IN (${ph.join(",")}))`);
+        }
       } else if (f.kind === "is") {
         clauses.push(this.isClause(f.col!, f.value));
       } else if (f.kind === "notIs") {
@@ -414,7 +435,48 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
     return clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
   }
 
+  /** Parse PostgREST embed filters like `categories.slug` / `orders.payment_status`. */
+  private parseEmbedCol(col: string): { table: string; col: string } | null {
+    if (!col.includes(".")) return null;
+    const [table, nested] = col.split(".");
+    if (!table || !nested || nested.includes(".") || !PG_IDENT.test(table) || !PG_IDENT.test(nested)) {
+      throw new Error(`Unsupported filter column: ${col}`);
+    }
+    return { table, col: nested };
+  }
+
+  /**
+   * EXISTS subquery for related-table filters.
+   * Forward FK (products → categories / order_items → orders):
+   *   EXISTS (SELECT 1 FROM related _e WHERE _e.id = parent.fk AND <predicate on _e>)
+   */
+  private embedExists(relatedTable: string, predicateOnAlias: string): string {
+    const fwd = (FK_MAP[this.table] || []).find((e) => e.foreignTable === relatedTable);
+    if (fwd) {
+      return `EXISTS (SELECT 1 FROM ${ident(relatedTable)} _e WHERE _e.${ident(fwd.foreignColumn)} = ${ident(this.table)}.${ident(fwd.column)} AND (${predicateOnAlias}))`;
+    }
+    const rev = (FK_MAP[relatedTable] || []).find((e) => e.foreignTable === this.table);
+    if (rev) {
+      return `EXISTS (SELECT 1 FROM ${ident(relatedTable)} _e WHERE _e.${ident(rev.column)} = ${ident(this.table)}.${ident(rev.foreignColumn)} AND (${predicateOnAlias}))`;
+    }
+    throw new Error(`Unknown embed relation for filter: ${relatedTable} on ${this.table}`);
+  }
+
+  private embedLeft(col: string, value: any): string {
+    // uuidSafeLeft returns "col" or "col"::text — prefix with _e.
+    return uuidSafeLeft(col, value).replace(`"${col}"`, `_e."${col}"`);
+  }
+
   private isClause(col: string, value: any): string {
+    const embed = this.parseEmbedCol(col);
+    if (embed) {
+      let pred: string;
+      if (value === null || value === "null") pred = `_e.${ident(embed.col)} IS NULL`;
+      else if (value === true || value === "true") pred = `_e.${ident(embed.col)} IS TRUE`;
+      else if (value === false || value === "false") pred = `_e.${ident(embed.col)} IS FALSE`;
+      else pred = `_e.${ident(embed.col)} IS NOT DISTINCT FROM ${value}`;
+      return this.embedExists(embed.table, pred);
+    }
     if (value === null || value === "null") return `${ident(col)} IS NULL`;
     if (value === true || value === "true") return `${ident(col)} IS TRUE`;
     if (value === false || value === "false") return `${ident(col)} IS FALSE`;
@@ -437,6 +499,12 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
     const o = sqlOp[bare];
     if (!o) throw new Error(`Unsupported operator: ${op}`);
     params.push(value);
+    const embed = this.parseEmbedCol(col);
+    if (embed) {
+      const pred = `${this.embedLeft(embed.col, value)} ${o} $${params.length}`;
+      const clause = this.embedExists(embed.table, pred);
+      return negate ? `NOT (${clause})` : clause;
+    }
     // Avoid Postgres uuid cast errors for filters like id.eq.ORD-123
     // (PostgREST coerces; we compare as text when the value is not a UUID).
     const left = uuidSafeLeft(col, value);
@@ -664,6 +732,32 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
         const edge = this.findReverseEdge(embedTable);
         const fkCol = edge?.column ?? `${singularize(this.table)}_id`;
         const parentIds = Array.from(new Set(rows.map((r) => r.id).filter(Boolean)));
+
+        // PostgREST aggregate embed: related(count) → [{ count: N }]
+        const isCountOnly =
+          !embed.select.star &&
+          embed.select.columns.length === 1 &&
+          embed.select.columns[0] === "count" &&
+          embed.select.embeds.length === 0;
+        if (isCountOnly) {
+          const counts = new Map<any, number>();
+          if (parentIds.length) {
+            const ph = parentIds.map((_, i) => `$${i + 1}`).join(",");
+            const res = await pool.query(
+              `SELECT ${ident(fkCol)} AS parent_id, count(*)::int AS count
+               FROM ${ident(embedTable)}
+               WHERE ${ident(fkCol)} IN (${ph})
+               GROUP BY ${ident(fkCol)}`,
+              parentIds
+            );
+            for (const row of res.rows) counts.set(row.parent_id, Number(row.count) || 0);
+          }
+          for (const r of rows) {
+            r[embed.alias] = [{ count: counts.get(r.id) ?? 0 }];
+          }
+          continue;
+        }
+
         const wantId = embedWantsId(embed.select);
         const wantFk = embed.select.star || embed.select.columns.includes(fkCol);
         const innerCols = this.embedColumns(embed.select, fkCol);

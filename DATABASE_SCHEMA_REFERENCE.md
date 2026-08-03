@@ -19,7 +19,7 @@ Live reference from `store_korna` (PostgreSQL 16.14), 2026-08-03.
 | `product_status` | active, draft, archived |
 | `category_status` | active, inactive |
 | `order_status` | pending, awaiting_payment, processing, shipped, delivered, cancelled, refunded |
-| `payment_status` | pending, paid, failed, refunded, partially_refunded |
+| `payment_status` | pending, paid, failed, refunded, partially_refunded, partially_paid |
 | `discount_type` | percentage, fixed_amount, free_shipping |
 | `review_status` | pending, approved, rejected |
 | `return_status` | pending, approved, rejected, processing, completed |
@@ -48,9 +48,14 @@ Payment attempt / callback / SMS statuses use **text + CHECK** (not PG enums) fo
 - **Pages/APIs:** admin layout, middleware, `/auth`, customer dashboards
 
 ### products / product_images / product_variants / categories
-- Catalog. Money as `numeric`. Status enums. Slug/SKU unique on products.  
+- Catalog. Money as `numeric`. Status enums. Slug/SKU unique on products. Stock column is `quantity` (not `stock_quantity`).  
+- Preorder flag lives in `products.metadata.is_preorder` (app-layer).  
+- Indexes: slug, status, status+created_at, category_id, featured, tags GIN; FKs on images/variants.  
 - **Pages:** `/`, `/shop`, `/product/[slug]`, admin products/inventory  
 - **APIs:** `/api/storefront/products`, `/api/storefront/categories`
+
+### order_payment_events
+- Idempotent payment application ledger (`gateway`, `gateway_ref` unique). Used by `apply_order_payment`.
 
 ### orders / order_items / order_status_history
 - Checkout + fulfillment. `order_number` unique. `payment_status` enum separate from fulfillment `status`. `metadata` jsonb (confirmation claim flags).  

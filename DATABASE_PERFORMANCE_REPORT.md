@@ -1,6 +1,6 @@
 # DATABASE_PERFORMANCE_REPORT — KORNA MALL
 
-**Environment:** staging `store_korna`, PostgreSQL 16.14, empty business tables (baseline latency only).
+**Environment:** staging `store_korna`, PostgreSQL 16.14, catalog seeded (10 products), empty orders/payments.
 
 ## Connection pool
 
@@ -14,12 +14,19 @@
 
 **Improvement (already in tree):** one shared pool; no per-request `new Pool()`.
 
-## Indexes added this pass
+## Indexes added
 
+**Payment pass:**
 - `idx_payment_attempts_gateway_ref_uq` (unique partial)
 - `idx_callback_events_external_uq` (unique partial)
 - `idx_callback_events_processing`
 - `idx_sms_attempts_order_confirm_uq` (unique partial)
+
+**Catalog audit pass (20260803230000):**
+- `idx_products_status_created`
+- `idx_products_category_id`
+- `idx_product_images_product_id`
+- `idx_product_variants_product_id`
 
 Existing coverage already strong for orders (user, status, order_number, reminder partial), products (slug/status/category/tags GIN), profiles email/role.
 

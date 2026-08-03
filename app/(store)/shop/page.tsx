@@ -85,10 +85,11 @@ function ShopContent() {
               .from('products')
               .select(`
                 *,
-                categories!inner(name, slug),
+                categories(name, slug),
                 product_images!product_id(url, position),
                 product_variants(id, name, price, quantity, option1, option2, image_url)
               `, { count: 'exact' })
+              .eq('status', 'active')
               .order('position', { foreignTable: 'product_images', ascending: true });
 
             // Search
@@ -96,18 +97,20 @@ function ShopContent() {
               query = query.ilike('name', `%${search}%`);
             }
 
-            // Category Filter with Subcategories
+            // Category filter via category_id (plain-PG safe; avoids embed-column filters)
             if (selectedCategory !== 'all') {
               const categoryObj = categories.find(c => c.slug === selectedCategory);
 
               if (categoryObj) {
-                const targetSlugs = [selectedCategory];
-                const childSlugs = categories
-                  .filter(c => c.parent_id === categoryObj.id)
-                  .map(c => c.slug);
-                targetSlugs.push(...childSlugs);
-                query = query.in('categories.slug', targetSlugs);
+                const targetIds = [
+                  categoryObj.id,
+                  ...categories
+                    .filter(c => c.parent_id === categoryObj.id)
+                    .map(c => c.id),
+                ];
+                query = query.in('category_id', targetIds);
               } else {
+                // Fallback when category list not loaded yet
                 query = query.eq('categories.slug', selectedCategory);
               }
             }

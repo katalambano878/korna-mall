@@ -4,8 +4,8 @@
 
 | Gateway | Code | DB support | Staging credentials |
 | ------- | ---- | ---------- | ------------------- |
-| **Moolre** | Implemented (`/api/payment/moolre*`) | Full audit tables | **Missing** in Coolify |
-| **Hubtel** | Not implemented | N/A | N/A |
+| **Moolre** | Implemented (`/api/payment/moolre*`) | Full audit tables | Configured (health OK) |
+| **Hubtel** | Implemented (`/api/payment/hubtel*`) | Shared audit tables | **Missing** keys in Coolify |
 | **Paystack** | Not implemented | N/A | N/A |
 
 Checkout often routes to WhatsApp; Moolre is used from `/pay/[orderId]`.

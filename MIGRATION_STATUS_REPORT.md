@@ -1,71 +1,41 @@
 # MIGRATION_STATUS_REPORT — KORNA MALL
 
-## Migration tool
+**Tool:** Manual SQL via `scripts/run-migration.mjs` / container `psql`/`node`+`pg` (not hosted Supabase CLI for prod DB)  
+**Ledger table:** `public.schema_migrations (id text PK, applied_at, notes)`
 
-- **Primary:** hand-authored SQL in `supabase/migrations/`
-- **Apply path (staging):** `scripts/korna-reset-and-migrate.sh` / `scripts/korna-plain-pg-bootstrap.sql` then `psql` apply of each file
-- **App helper:** `npm run db:migrate` → `scripts/run-migration.mjs` (uses `DATABASE_URL`)
-- **Not used for runtime:** hosted Supabase CLI against cloud project
-- **Ledger:** `public.schema_migrations` (added 2026-08-03)
+## Applied (store_korna)
 
-## History (repository)
-
-| ID | File | Notes |
-| -- | ---- | ----- |
-| 20260209000000 | `complete_schema.sql` | Full ecommerce baseline (enums, tables, RLS policies, RPCs) |
-| 20260218000000 | `allow_null_order_items_product_fks.sql` | Soft product deletes |
-| 20260730000000 | `mark_order_paid_idempotent.sql` | Idempotent paid RPC |
-| 20260803000000 | `payment_audit_tables.sql` | payment_attempts, callback_events, sms_attempts, claim fn |
-| 20260803120000 | `db_health_repair.sql` | auth.role, storage stub, payment guards, ledger |
-
-## Applied on staging `store_korna` (verified)
-
-All five IDs present in `schema_migrations` after repair apply.
-
-Pre-repair bootstrap had already created baseline + payment audit objects. Corrective migration was **additive** and applied successfully (`APPLY_OK`).
+| id | notes |
+| -- | ----- |
+| 20260209000000_complete_schema | baseline ecommerce schema |
+| 20260218000000_allow_null_order_items_product_fks | soft-delete products |
+| 20260730000000_mark_order_paid_idempotent | idempotent paid RPC |
+| 20260803000000_payment_audit_tables | payment/callback/sms audit |
+| 20260803120000_db_health_repair | auth.role, storage stub, payment guards |
+| 20260803140000_part_payment_plans | order payment_plan columns + order_payment_events |
+| 20260803140100_apply_order_payment | apply_order_payment RPC |
+| 20260803230000_audit_repair_order_payment_events | audit repair: events/indexes/ledger |
 
 ## Pending
 
-None for schema. Application code updates (health checks, audit hardening) require Coolify redeploy of branch `staging/plain-postgres`.
+None for known repo migrations.
 
-## Failed / noisy historical applies
+## Corrective migration this pass
 
-During first bootstrap:
+`supabase/migrations/20260803230000_audit_repair_order_payment_events.sql`
 
-- Missing `extensions` / `auth` schemas → fixed by `korna-plain-pg-bootstrap.sql`
-- `storage.buckets` inserts failed → stubbed in health repair
-- Some `auth.role()` policy statements failed previously → function now exists
-- Duplicate enum notices if re-applied → non-fatal; prefer ledger + IF NOT EXISTS
+- Idempotent `CREATE TABLE IF NOT EXISTS order_payment_events`
+- Ensures part-payment columns/checks
+- Product/FK indexes
+- Ledger inserts `ON CONFLICT DO NOTHING`
 
 ## Destructive operations
 
-- Staging DB was reset once during initial Korna bootstrap (empty project; no business data).  
-- This repair pass: **no drops**, no truncate, no data deletion.
+None. No drops, no truncate, no data deletion.
 
-## Rollback notes
+## Rollback
 
-```sql
--- Reverse health-repair pieces only if needed (staging):
-DROP TRIGGER IF EXISTS trg_protect_successful_payment_attempt ON payment_attempts;
-DROP FUNCTION IF EXISTS protect_successful_payment_attempt();
-DROP INDEX IF EXISTS idx_payment_attempts_gateway_ref_uq;
-DROP INDEX IF EXISTS idx_callback_events_external_uq;
-DROP INDEX IF EXISTS idx_sms_attempts_order_confirm_uq;
-DROP INDEX IF EXISTS idx_callback_events_processing;
-ALTER TABLE payment_attempts DROP CONSTRAINT IF EXISTS payment_attempts_amount_expected_nonneg;
-ALTER TABLE payment_attempts DROP CONSTRAINT IF EXISTS payment_attempts_amount_paid_nonneg;
--- Keep auth.role() and storage stub unless you know policies don't need them.
-DELETE FROM schema_migrations WHERE id = '20260803120000_db_health_repair';
-```
-
-Full restore: see `DATABASE_RECOVERY_GUIDE.md`.
-
-## Deployment order
-
-1. Confirm DB host/name = staging `store_korna`
-2. Backup (pg_dump)
-3. Apply bootstrap if blank DB
-4. Apply migrations in timestamp order
-5. `npm run db:schema-smoke` (with DATABASE_URL)
-6. Redeploy app
-7. Hit `/api/health`
+1. Indexes: `DROP INDEX IF EXISTS idx_products_status_created;` (etc.)  
+2. Do **not** drop `order_payment_events` if any rows exist.  
+3. Ledger row can remain (harmless).  
+4. Code rollback: redeploy previous git SHA.
