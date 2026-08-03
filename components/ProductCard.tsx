@@ -107,7 +107,7 @@ export default function ProductCard({
           </Link>
 
           {/* Optional non-sale badge (e.g. Featured) */}
-          {badge && !isPreorder && discount === 0 && (
+          {badge && discount === 0 && (
             <div className="absolute top-3 left-3 z-[1]">
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 {badge}
@@ -115,16 +115,8 @@ export default function ProductCard({
             </div>
           )}
 
-          {isPreorder && (
-            <div className={`absolute top-3 z-[1] ${badge && discount === 0 ? 'left-[5.5rem]' : 'left-3'}`}>
-              <span className="inline-flex items-center bg-brand-accent text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
-                Pre-order
-              </span>
-            </div>
-          )}
-
           {discount > 0 && (
-            <div className={`absolute top-3 z-[1] ${isPreorder ? 'left-[5.5rem]' : 'left-3'}`}>
+            <div className="absolute top-3 left-3 z-[1]">
               <span className="inline-flex items-center bg-brand text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm">
                 {discount}% off
               </span>
@@ -155,13 +147,6 @@ export default function ProductCard({
             >
               <i className="ri-heart-line text-base" />
             </button>
-            <Link
-              href={`/product/${slug}`}
-              aria-label="View product"
-              className="w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-brand hover:bg-white transition"
-            >
-              <i className="ri-expand-diagonal-line text-base" />
-            </Link>
             {!hasVariants && inStock && (
               <button
                 type="button"
@@ -200,10 +185,15 @@ export default function ProductCard({
           </h3>
         </Link>
 
-        <div className="flex items-baseline gap-2 mt-auto">
+        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-auto">
           <span className="text-[15px] font-semibold text-brand-accent">
             {hasVariants && minVariantPrice ? `From ${formatPrice(minVariantPrice)}` : formatPrice(price)}
           </span>
+          {isPreorder && (
+            <span className="inline-flex items-center bg-brand-accent/10 text-brand-accent text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+              Pre-order
+            </span>
+          )}
           {discount > 0 && originalPrice != null && (
             <span className="text-[13px] text-stone-400 line-through">{formatPrice(originalPrice)}</span>
           )}
@@ -294,11 +284,16 @@ export default function ProductCard({
           </div>
         )}
 
-        <div className={`flex items-center mt-auto ${compact ? 'flex-wrap gap-x-1.5 sm:space-x-2.5 sm:flex-nowrap' : 'space-x-2.5'}`}>
+        <div className={`flex items-center mt-auto flex-wrap ${compact ? 'gap-x-1.5 gap-y-1 sm:gap-x-2.5' : 'gap-x-2.5 gap-y-1'}`}>
           {hasVariants && minVariantPrice ? (
             <span className={`text-gray-900 font-bold tracking-tight ${compact ? 'text-[11px] sm:text-[15px]' : 'text-[15px]'}`}>From {formatPrice(minVariantPrice)}</span>
           ) : (
             <span className={`text-gray-900 font-bold tracking-tight ${compact ? 'text-[11px] sm:text-[15px]' : 'text-[15px]'}`}>{formatPrice(price)}</span>
+          )}
+          {isPreorder && (
+            <span className={`inline-flex items-center bg-brand-accent/10 text-brand-accent font-semibold rounded-full ${compact ? 'text-[9px] px-1.5 py-0.5 sm:text-[11px] sm:px-2.5' : 'text-[11px] px-2.5 py-0.5'}`}>
+              Pre-order
+            </span>
           )}
           {discount > 0 && originalPrice != null && (
             <span className={`text-gray-500 line-through decoration-gray-300 ${compact ? 'text-[9px] sm:text-[13px]' : 'text-[13px]'}`}>{formatPrice(originalPrice)}</span>
