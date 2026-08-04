@@ -57,6 +57,45 @@ function safeJoin(bucket: string, objectPath: string): string {
   return full;
 }
 
+/** Extract file bytes from a multipart body accidentally persisted by older upload shims. */
+function unwrapMultipartIfNeeded(
+  bytes: Buffer,
+  contentType: string,
+  objectPath: string
+): { bytes: Buffer; contentType: string } {
+  const head = bytes.subarray(0, 240).toString("latin1");
+  const looksMultipart =
+    contentType.toLowerCase().startsWith("multipart/") ||
+    head.includes("WebKitFormBoundary") ||
+    head.startsWith("------");
+  if (!looksMultipart) return { bytes, contentType };
+
+  const text = bytes.toString("latin1");
+  const withFilename =
+    /Content-Disposition:.*filename="([^"]+)".*\r?\nContent-Type:\s*([^\r\n]+)\r?\n\r?\n/is.exec(
+      text
+    );
+  const imageOnly = withFilename
+    ? null
+    : /Content-Type:\s*(image\/[^\r\n]+)\r?\n\r?\n/i.exec(text);
+  const match = withFilename || imageOnly;
+  if (!match) return { bytes, contentType: guessContentType(objectPath) };
+
+  const ctype = (withFilename ? withFilename[2] : imageOnly![1]).trim();
+  const start = match.index + match[0].length;
+  let end = text.indexOf("\r\n------", start);
+  if (end < 0) end = text.length;
+  let body = bytes.subarray(start, end);
+  if (body.length >= 2 && body[body.length - 2] === 0x0d && body[body.length - 1] === 0x0a) {
+    body = body.subarray(0, body.length - 2);
+  }
+  const resolved =
+    ctype && !ctype.toLowerCase().startsWith("multipart/")
+      ? ctype
+      : guessContentType(objectPath);
+  return { bytes: body, contentType: resolved };
+}
+
 export async function readObject(
   bucket: string,
   objectPath: string
@@ -71,7 +110,7 @@ export async function readObject(
     } catch {
       contentType = guessContentType(objectPath);
     }
-    return { bytes, contentType };
+    return unwrapMultipartIfNeeded(bytes, contentType, objectPath);
   } catch {
     return null;
   }

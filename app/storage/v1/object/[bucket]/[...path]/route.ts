@@ -7,10 +7,22 @@ import { authorizeStorageWrite } from "@/lib/db/rest-acl";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function guessContentTypeFromPath(objectPath: string): string {
+  const ext = objectPath.toLowerCase().split(".").pop() || "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    gif: "image/gif",
+  };
+  return map[ext] || "application/octet-stream";
+}
+
 /**
  * Supabase Storage upload:
  *   POST /storage/v1/object/{bucket}/{path}
- *   body = raw file bytes
+ *   body = raw file bytes OR multipart/form-data (supabase-js)
  */
 export async function POST(
   req: NextRequest,
@@ -29,10 +41,36 @@ export async function POST(
   const { bucket, path } = await ctx.params;
   const objectPath = path.map(decodeURIComponent).join("/");
   const upsert = (req.headers.get("x-upsert") || "").toLowerCase() === "true";
-  const contentType =
-    req.headers.get("content-type") || "application/octet-stream";
+  const headerCt = req.headers.get("content-type") || "application/octet-stream";
 
-  const buf = Buffer.from(await req.arrayBuffer());
+  // supabase-js uploads as multipart/form-data (file + cacheControl fields).
+  // Older shims saved the raw multipart body, which browsers cannot display.
+  // Parse FormData when needed and persist only the file bytes + real MIME type.
+  let buf: Buffer;
+  let contentType = headerCt.split(";")[0].trim() || "application/octet-stream";
+  if (headerCt.toLowerCase().includes("multipart/form-data")) {
+    const form = await req.formData();
+    let file: File | null = null;
+    for (const value of form.values()) {
+      if (value instanceof File && value.size > 0) {
+        file = value;
+        break;
+      }
+    }
+    if (!file) {
+      return NextResponse.json(
+        { error: "No file found in multipart upload" },
+        { status: 400 }
+      );
+    }
+    buf = Buffer.from(await file.arrayBuffer());
+    contentType =
+      (file.type && file.type.split(";")[0].trim()) ||
+      guessContentTypeFromPath(objectPath);
+  } else {
+    buf = Buffer.from(await req.arrayBuffer());
+  }
+
   const storage = createStorageClient();
   const { data, error } = await storage.from(bucket).upload(objectPath, buf, {
     contentType,
