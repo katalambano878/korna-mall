@@ -71,8 +71,9 @@ function unwrapMultipartIfNeeded(
   if (!looksMultipart) return { bytes, contentType };
 
   const text = bytes.toString("latin1");
+  // Avoid /s (dotAll) — project TS target is below es2018.
   const withFilename =
-    /Content-Disposition:.*filename="([^"]+)".*\r?\nContent-Type:\s*([^\r\n]+)\r?\n\r?\n/is.exec(
+    /Content-Disposition:[\s\S]*?filename="([^"]+)"[\s\S]*?\r?\nContent-Type:\s*([^\r\n]+)\r?\n\r?\n/i.exec(
       text
     );
   const imageOnly = withFilename
