@@ -4,7 +4,7 @@ export const SITE_NAME = 'KORNA MALL';
 export const SITE_SHORT_NAME = 'KORNA MALL';
 export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005').replace(/\/+$/, '');
 export const SITE_DESCRIPTION =
-  'Shop online at KORNA MALL in Accra, Ghana. Discover everyday essentials, fashion, and more — with delivery across Ghana.';
+  'Shop online at KORNA MALL in Accra, Ghana. Home equipment, gym gear, kitchen tools, and everyday essentials — delivered across Ghana.';
 export const SITE_PHONE = '0543832358';
 export const SITE_PHONE_SECONDARY = '0248782778';
 export const SITE_EMAIL = process.env.ADMIN_EMAIL || '';

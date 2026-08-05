@@ -14,41 +14,45 @@ import { isPreorderProduct } from '@/lib/preorder';
 import { displayCompareAtPrice } from '@/lib/storefront-pricing';
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  fashion: '/hero-1.png',
-  beauty: '/hero-2.png',
-  activewear: '/hero-3.png',
-  home: '/shop-hero.png',
-  electronics: '/cart-hero.png',
-  accessories: '/contact-hero.png',
+  home: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+  furniture: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
+  kitchen: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
+  gym: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+  electronics: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  tools: 'https://images.unsplash.com/photo-1581244277943-4252a3f98475?w=800&q=80',
+  fashion: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+  beauty: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
+  activewear: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+  accessories: 'https://images.unsplash.com/photo-1581244277943-4252a3f98475?w=800&q=80',
 };
 
 const heroSlides = [
   {
-    image: '/hero-1.png',
-    tag: 'Fashion',
-    heading: <>Style that <br /><span className="italic font-light text-brand-accent">Moves With You</span></>,
-    subtext: "Shop the latest women's fashion and everyday essentials - delivered across Accra and Ghana.",
-    cta: { text: 'Shop Fashion', href: '/shop' },
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=85',
+    tag: 'Fitness',
+    heading: <>Gym & <br /><span className="italic font-light text-brand-accent">Home Fitness</span></>,
+    subtext: 'Quality gym equipment and fitness gear for your home — delivered across Accra and Ghana.',
+    cta: { text: 'Shop Fitness', href: '/shop' },
     cta2: { text: 'Browse Categories', href: '/categories' },
     position: 'object-center',
   },
   {
-    image: '/hero-2.png',
-    tag: 'Beauty',
-    heading: <>Fragrance <br /><span className="italic font-light text-brand-accent">Collection</span></>,
-    subtext: 'Discover premium scents and beauty picks curated for every mood.',
-    cta: { text: 'Shop Beauty', href: '/shop' },
+    image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1920&q=85',
+    tag: 'Kitchen',
+    heading: <>Kitchen <br /><span className="italic font-light text-brand-accent">Essentials</span></>,
+    subtext: 'Cookware, appliances, and kitchen tools for every Ghanaian home.',
+    cta: { text: 'Shop Kitchen', href: '/shop' },
     cta2: { text: 'Shop Now', href: '/shop' },
     position: 'object-center',
   },
   {
-    image: '/hero-3.png',
-    tag: 'Activewear',
-    heading: <>Move in <br /><span className="italic font-light text-brand-accent">Color</span></>,
-    subtext: 'Matching sets and everyday activewear for comfort, style, and performance.',
-    cta: { text: 'Shop Active', href: '/shop?sort=newest' },
+    image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=85',
+    tag: 'Home',
+    heading: <>Home & <br /><span className="italic font-light text-brand-accent">Living</span></>,
+    subtext: 'Furniture, décor, and home equipment to make your space comfortable and functional.',
+    cta: { text: 'Shop Home', href: '/shop' },
     cta2: { text: 'Our Story', href: '/about' },
-    position: 'object-[center_40%]',
+    position: 'object-[center_45%]',
   },
 ] as const;
 
@@ -87,7 +91,7 @@ export default function HomePage() {
   } = {
     hero: {
       headline: 'KORNA MALL - Shop Online in Accra',
-      subheadline: 'Your trusted online mall in Accra. Quality products from fashion to electronics - delivered across Ghana at competitive prices.',
+      subheadline: 'Your trusted online mall in Accra. Home equipment, gym gear, kitchen tools, and everyday essentials — delivered across Ghana.',
       primaryButtonText: 'Shop Collections',
       primaryButtonLink: '/shop',
       secondaryButtonText: 'Our Story',

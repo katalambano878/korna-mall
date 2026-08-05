@@ -19,30 +19,34 @@ export default async function CategoriesPage() {
     .order('position', { ascending: true });
 
   const categoryImages: Record<string, string> = {
-    fashion: '/hero-1.png',
-    beauty: '/hero-2.png',
-    activewear: '/hero-3.png',
-    home: '/shop-hero.png',
-    electronics: '/cart-hero.png',
-    accessories: '/contact-hero.png',
+    home: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+    furniture: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
+    kitchen: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
+    gym: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    electronics: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    tools: 'https://images.unsplash.com/photo-1581244277943-4252a3f98475?w=800&q=80',
+    fashion: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+    beauty: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
+    activewear: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    accessories: 'https://images.unsplash.com/photo-1581244277943-4252a3f98475?w=800&q=80',
   };
 
-  // Palette to cycle through for visual variety since DB doesn't have colors
-  const palette = [
-    { color: 'from-brand to-brand-dark', icon: 'ri-store-2-line' },
-    { color: 'from-brand to-brand-dark', icon: 'ri-shopping-bag-3-line' },
-    { color: 'from-purple-500 to-purple-700', icon: 'ri-t-shirt-line' },
-    { color: 'from-amber-500 to-amber-700', icon: 'ri-home-smile-line' },
-    { color: 'from-rose-500 to-rose-700', icon: 'ri-heart-line' },
-    { color: 'from-brand to-brand-dark', icon: 'ri-star-smile-line' },
+  const fallbackImages = [
+    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
+    'https://images.unsplash.com/photo-1581244277943-4252a3f98475?w=800&q=80',
+    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
   ];
 
-  const fallbackImages = [
-    '/about-hero.png',
-    '/blog-hero.png',
-    '/faqs-hero.png',
-    '/wishlist-hero.png',
-    '/categories-hero.png',
+  const palette = [
+    { color: 'from-brand to-brand-dark', icon: 'ri-home-smile-line' },
+    { color: 'from-brand to-brand-dark', icon: 'ri-tools-line' },
+    { color: 'from-emerald-500 to-emerald-700', icon: 'ri-heart-pulse-line' },
+    { color: 'from-amber-500 to-amber-700', icon: 'ri-restaurant-line' },
+    { color: 'from-slate-600 to-slate-800', icon: 'ri-plug-line' },
+    { color: 'from-brand to-brand-dark', icon: 'ri-store-2-line' },
   ];
 
   const categories = categoriesData?.map((c, i) => {
@@ -64,8 +68,8 @@ export default async function CategoriesPage() {
     <div className="min-h-screen bg-white">
       <PageHero
         title="Shop by Category"
-        subtitle="Browse our collections — fashion, electronics, home essentials, and everyday must-haves"
-        backgroundImage="/categories-hero.png"
+        subtitle="Browse home equipment, gym gear, kitchen tools, electronics, and everyday essentials"
+        backgroundImage="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=85"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

@@ -12,7 +12,7 @@ const TOP_MARQUEE = [
   'Free delivery on orders over GHS 500 within Accra',
   'Secure payments via Mobile Money and Card',
   'New arrivals every week at KORNA MALL',
-  'Fashion  |  Beauty  |  Home  |  Electronics',
+  'Home  |  Gym  |  Kitchen  |  Electronics',
   'WhatsApp support: 054 383 2358',
   'Shop online - delivered across Ghana',
 ];
