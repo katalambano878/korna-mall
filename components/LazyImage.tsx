@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { isAppStorageUrl } from '@/lib/image-utils';
 
 interface LazyImageProps {
   src: string;
@@ -57,6 +58,7 @@ export default function LazyImage({
         alt={alt}
         fill
         sizes={sizes}
+        unoptimized={isAppStorageUrl(src)}
         className={`object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         onLoad={handleLoad}
         onError={handleError}

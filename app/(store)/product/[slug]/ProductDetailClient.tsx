@@ -13,6 +13,7 @@ import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { getPreorderShippingNote, isPreorderProduct } from '@/lib/preorder';
 import { displayCompareAtPrice, displayDiscountPercent } from '@/lib/storefront-pricing';
+import { isAppStorageUrl } from '@/lib/image-utils';
 
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
@@ -306,6 +307,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     src={product.images[selectedImage]}
                     alt={product.name}
                     fill
+                    unoptimized={isAppStorageUrl(product.images[selectedImage])}
                     className="object-cover object-center"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     priority
@@ -331,6 +333,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                           src={image}
                           alt={`${product.name} view ${index + 1}`}
                           fill
+                          unoptimized={isAppStorageUrl(image)}
                           className="object-cover object-center"
                           sizes="(max-width: 1024px) 25vw, 12vw"
                           quality={60}
