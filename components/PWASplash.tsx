@@ -32,9 +32,9 @@ export default function PWASplash() {
         <Image
           src="/logo.png"
           alt="KORNA MALL"
-          width={220}
-          height={72}
-          className="h-16 w-auto object-contain mx-auto"
+          width={460}
+          height={346}
+          className="h-20 w-auto object-contain mx-auto"
           priority
         />
       </div>

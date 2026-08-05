@@ -44,8 +44,11 @@ for (let i = 0; i < data.length; i += 4) {
 const png = await sharp(data, {
   raw: { width: info.width, height: info.height, channels: 4 },
 })
+  .trim()
   .png()
   .toBuffer();
+
+const logoMeta = await sharp(png).metadata();
 
 const outLogo = path.join(root, 'public', 'logo.png');
 await fs.promises.writeFile(outLogo, png);
@@ -62,4 +65,9 @@ await fs.promises.writeFile(path.join(root, 'public', 'favicon.png'), await shar
 await fs.promises.writeFile(path.join(root, 'public', 'favicon-32.png'), await sharp(icon512).resize(32, 32).png().toBuffer());
 await fs.promises.writeFile(path.join(root, 'public', 'brand-mark.png'), await sharp(icon512).resize(256, 256).png().toBuffer());
 
-console.log('Wrote', outLogo, 'and icon variants');
+console.log(
+  'Wrote',
+  outLogo,
+  `(${logoMeta.width}x${logoMeta.height})`,
+  'and icon variants'
+);

@@ -108,7 +108,7 @@ export default function Header() {
                   className="flex items-center select-none opacity-90 transition-opacity duration-500 hover:opacity-100"
                   aria-label="Go to homepage"
                 >
-                  <Image src="/logo.png" alt={siteName} width={180} height={56} className="h-8 w-auto md:h-9 object-contain object-left" priority />
+                  <Image src="/logo.png" alt={siteName} width={460} height={346} className="h-12 md:h-14 w-auto object-contain object-left" priority />
                 </Link>
               </div>
 
@@ -241,7 +241,7 @@ export default function Header() {
           <div className="absolute top-0 left-0 bottom-0 w-4/5 max-w-xs bg-white shadow-xl flex flex-col animate-in slide-in-from-left duration-300">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
-                <Image src="/logo.png" alt={siteName} width={150} height={47} className="h-8 w-auto object-contain object-left" />
+                <Image src="/logo.png" alt={siteName} width={460} height={346} className="h-12 w-auto object-contain object-left" />
               </Link>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
