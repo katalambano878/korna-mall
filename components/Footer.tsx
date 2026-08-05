@@ -68,7 +68,7 @@ export default function Footer() {
 
             <div className="lg:col-span-4 space-y-8 pr-0 lg:pr-12">
               <Link href="/" className="inline-block group transition-all duration-500 hover:opacity-80">
-                <Image src={siteLogo} alt={siteName} width={460} height={346} className="h-14 w-auto object-contain object-left opacity-90" unoptimized />
+                <Image src={siteLogo} alt={siteName} width={574} height={433} className="h-14 w-auto object-contain object-left opacity-90" unoptimized />
               </Link>
 
               <p className="text-white/70 font-light leading-relaxed text-[15px] max-w-sm">

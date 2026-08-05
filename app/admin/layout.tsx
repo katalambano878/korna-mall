@@ -262,7 +262,7 @@ export default function AdminLayout({
       >
         <div className="h-full px-4 py-6 overflow-y-auto">
           <Link href="/admin" className="flex items-center gap-2 mb-8 px-2 cursor-pointer">
-            <Image src="/logo.png" alt="KORNA MALL" width={460} height={346} className="h-8 w-auto object-contain" />
+            <Image src="/logo.png" alt="KORNA MALL" width={574} height={433} className="h-8 w-auto object-contain" />
             <span className="text-xs font-semibold text-gray-500 tracking-wide">ADMIN</span>
           </Link>
 
