@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import PageHero from '@/components/PageHero';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { SITE_PHONE, SITE_PHONE_SECONDARY, whatsAppUrl } from '@/lib/seo';
 
 export default function ContactPage() {
   usePageTitle('Contact Us');
@@ -90,14 +91,10 @@ export default function ContactPage() {
   const heroTitle = pageContent?.title || 'Get In Touch';
   const heroSubtitle = pageContent?.subtitle || 'Have a question or need assistance?';
   const heroContent = pageContent?.content || 'Send us a message and we\'ll get back to you.';
-  const contactPhone = getSetting('contact_phone') || '0543832358';
-  const contactPhoneSecondary = '0248782778';
+  const contactPhone = getSetting('contact_phone') || SITE_PHONE;
+  const contactPhoneSecondary = SITE_PHONE_SECONDARY;
   const contactAddress = getSetting('contact_address') || 'Accra, Ghana';
   const siteName = getSetting('site_name') || 'KORNA MALL';
-  const whatsappDigits =
-    (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '') ||
-    `233${contactPhone.replace(/\D/g, '').replace(/^0/, '')}`;
-  const whatsappUrl = whatsappDigits ? `https://wa.me/${whatsappDigits}` : '';
 
   const faqs = [
     {
@@ -289,9 +286,14 @@ export default function ContactPage() {
                           <a href={`tel:${contactPhone.replace(/\s/g, '')}`} className="font-light hover:text-black transition-colors">{contactPhone}</a>
                           <a href={`tel:${contactPhoneSecondary.replace(/\s/g, '')}`} className="font-light hover:text-black transition-colors">{contactPhoneSecondary}</a>
                         </div>
-                        <a href={whatsappUrl || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center self-start text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
-                          <i className="ri-whatsapp-fill mr-1.5 text-sm"></i> WhatsApp Us
-                        </a>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <a href={whatsAppUrl(contactPhone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
+                            <i className="ri-whatsapp-fill mr-1.5 text-sm"></i> WhatsApp {contactPhone}
+                          </a>
+                          <a href={whatsAppUrl(contactPhoneSecondary)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
+                            <i className="ri-whatsapp-fill mr-1.5 text-sm"></i> WhatsApp {contactPhoneSecondary}
+                          </a>
+                        </div>
                       </div>
                     </div>
                   )}

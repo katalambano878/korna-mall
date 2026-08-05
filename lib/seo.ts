@@ -7,6 +7,26 @@ export const SITE_DESCRIPTION =
   'Shop online at KORNA MALL in Accra, Ghana. Home equipment, gym gear, kitchen tools, and everyday essentials — delivered across Ghana.';
 export const SITE_PHONE = '0543832358';
 export const SITE_PHONE_SECONDARY = '0248782778';
+
+export function toWhatsAppE164(localNumber: string): string {
+  const digits = localNumber.replace(/\D/g, '');
+  if (digits.startsWith('233')) return digits;
+  return `233${digits.replace(/^0/, '')}`;
+}
+
+export const SITE_WHATSAPP_NUMBERS = [SITE_PHONE, SITE_PHONE_SECONDARY] as const;
+
+export function whatsAppUrl(localNumber: string): string {
+  return `https://wa.me/${toWhatsAppE164(localNumber)}`;
+}
+
+export function formatLocalPhone(localNumber: string): string {
+  const digits = localNumber.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  }
+  return localNumber;
+}
 export const SITE_EMAIL = process.env.ADMIN_EMAIL || '';
 export const SITE_LOCALE = 'en_GH';
 export const DEFAULT_OG_IMAGE = '/og-image.png';

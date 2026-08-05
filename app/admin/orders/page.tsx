@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProductSalesStats from './ProductSalesStats';
+import { depositPlanLabel, isDepositPlan } from '@/lib/payments/plans';
 
 interface Order {
   id: string;
@@ -602,8 +603,8 @@ export default function AdminOrdersPage() {
                     <td className="py-4 px-4 text-sm whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="text-gray-700">{order.payment_method || 'N/A'}</span>
-                        {order.payment_plan === 'deposit_50' && (
-                          <span className="text-xs text-brand mt-0.5">50% plan</span>
+                        {isDepositPlan(order.payment_plan) && (
+                          <span className="text-xs text-brand mt-0.5">{depositPlanLabel()}</span>
                         )}
                         {order.payment_status === 'partially_paid' && (
                           <span className="text-xs mt-1 text-brand-accent">Partially paid</span>

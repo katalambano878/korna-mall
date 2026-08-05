@@ -13,7 +13,7 @@ const TOP_MARQUEE = [
   'Secure payments via Mobile Money and Card',
   'New arrivals every week at KORNA MALL',
   'Home  |  Gym  |  Kitchen  |  Electronics',
-  'WhatsApp support: 054 383 2358',
+  'WhatsApp: 054 383 2358 · 024 878 2778',
   'Shop online - delivered across Ghana',
 ];
 

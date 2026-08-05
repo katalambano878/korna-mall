@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { depositPlanLabel, isDepositPlan } from '@/lib/payments/plans';
 
 type Gateway = { id: string; label: string };
 
@@ -169,11 +170,11 @@ export default function PaymentPage() {
               <span className="text-gray-600">Order total</span>
               <span className="text-brand-ink">GH₵ {Number(order?.total || 0).toFixed(2)}</span>
             </div>
-            {order?.payment_plan === 'deposit_50' && (
+            {isDepositPlan(order?.payment_plan) && (
               <>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Plan</span>
-                  <span className="text-brand font-medium">50% deposit</span>
+                  <span className="text-brand font-medium">{depositPlanLabel()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Already paid</span>

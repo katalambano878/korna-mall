@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { escapeHtml } from '@/lib/sanitize';
 import { fetchWithTimeout } from '@/lib/fetch-timeout';
+import { depositPlanLabel, isDepositPlan } from '@/lib/payments/plans';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
@@ -110,7 +111,7 @@ function emailTotalsTable(order: any): string {
     const shippingVal = Number(order.shipping_total || 0);
     const discountVal = Number(order.discount_total || 0);
 
-    const plan = order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment';
+    const plan = isDepositPlan(order.payment_plan) ? depositPlanLabel() : 'Full payment';
     const paid = Number(order.amount_paid || 0);
     const balance = Number(order.balance_due ?? Math.max(0, Number(order.total || 0) - paid));
 
@@ -374,7 +375,7 @@ ${emailButton('Track Your Order', trackingUrl)}
   ${phone ? emailInfoRow('Phone', `<a href="tel:${phone}" style="color:${BRAND.color};">${escapeHtml(phone)}</a>`) : ''}
   ${emailInfoRow('Fulfilment', order.shipping_method === 'pickup' ? 'Store Pickup' : 'Delivery')}
   ${emailInfoRow('Payment', `${escapeHtml(order.payment_method || 'N/A')} — ${escapeHtml(order.payment_status || 'pending')}`)}
-  ${emailInfoRow('Plan', order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment')}
+  ${emailInfoRow('Plan', isDepositPlan(order.payment_plan) ? depositPlanLabel() : 'Full payment')}
   ${Number(order.amount_paid || 0) > 0 ? emailInfoRow('Paid', `GH&#8373;${Number(order.amount_paid).toFixed(2)}`) : ''}
   ${Number(order.balance_due || 0) > 0.01 ? emailInfoRow('Balance due', `GH&#8373;${Number(order.balance_due).toFixed(2)}`) : ''}
   ${trackingNumber ? emailInfoRow('Tracking', trackingNumber) : ''}

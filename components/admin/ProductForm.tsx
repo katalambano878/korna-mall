@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { DEFAULT_PREORDER_SHIPPING, isPreorderProduct, normalizeProductMetadata } from '@/lib/preorder';
+import { DEPOSIT_PERCENT } from '@/lib/payments/plans';
 
 interface ProductFormProps {
     initialData?: any;
@@ -590,7 +591,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                             </span>
                                         </div>
                                         <p className="text-xs text-gray-600">
-                                            Ships when stock arrives. Customers can pay full or 50% deposit.
+                                            Ships when stock arrives. Customers can pay full or {DEPOSIT_PERCENT}% deposit.
                                         </p>
                                     </button>
                                 </div>

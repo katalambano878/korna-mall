@@ -1,8 +1,10 @@
+import { DEPOSIT_PERCENT } from '@/lib/payments/plans';
+
 /** Per-product availability: Available (in Ghana stock) vs Pre-order. */
 
 export const DEFAULT_PREORDER_SHIPPING =
   process.env.NEXT_PUBLIC_PREORDER_SHIPPING_NOTE?.trim() ||
-  'Pre-order — ships when stock arrives. Pay in full or 50% now at checkout.';
+  `Pre-order — ships when stock arrives. Pay in full or ${DEPOSIT_PERCENT}% now at checkout.`;
 
 export type ProductMetadata = {
   is_preorder?: boolean;

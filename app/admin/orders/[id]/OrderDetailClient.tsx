@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import FraudDetectionAlert from '@/components/FraudDetectionAlert';
+import { depositPlanLabel, isDepositPlan } from '@/lib/payments/plans';
 
 interface OrderDetailClientProps {
   orderId: string;
@@ -449,7 +450,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 <div className="flex justify-between text-gray-700">
                   <span>Plan</span>
                   <span className="font-semibold">
-                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment'}
+                    {isDepositPlan(order.payment_plan) ? depositPlanLabel() : 'Full payment'}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-700">
@@ -583,7 +584,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Plan</span>
                   <span className="font-semibold text-gray-900">
-                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full'}
+                    {isDepositPlan(order.payment_plan) ? depositPlanLabel() : 'Full'}
                   </span>
                 </div>
                 <div className="flex justify-between">

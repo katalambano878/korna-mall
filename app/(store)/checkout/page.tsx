@@ -10,6 +10,8 @@ import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { isPreorderProduct } from '@/lib/preorder';
+import { computePaymentPlan, depositPlanLabel, DEPOSIT_PERCENT } from '@/lib/payments/plans';
+import { SITE_PHONE, toWhatsAppE164 } from '@/lib/seo';
 
 export default function CheckoutPage() {
   usePageTitle('Checkout');
@@ -66,7 +68,7 @@ export default function CheckoutPage() {
   );
 
   // Store WhatsApp number (E.164, no +) that receives the orders
-  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '233543832358';
+  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || toWhatsAppE164(SITE_PHONE);
 
   const buildWhatsAppMessage = (orderNumber: string, trackingNumber: string) => {
     const lines = [
@@ -162,14 +164,9 @@ export default function CheckoutPage() {
   const tax = 0; // No Tax
   const total = subtotal + shippingCost + tax;
   const effectivePlan = cartHasPreorder ? paymentPlan : 'full';
-  const amountDueNow =
-    effectivePlan === 'deposit_50'
-      ? Math.round((total / 2) * 100) / 100
-      : total;
-  const balanceDue =
-    effectivePlan === 'deposit_50'
-      ? Math.round((total - amountDueNow) * 100) / 100
-      : 0;
+  const planBreakdown = computePaymentPlan(total, effectivePlan);
+  const amountDueNow = planBreakdown.amountDueNow;
+  const balanceDue = planBreakdown.balanceDue;
 
   useEffect(() => {
     if (!cartHasPreorder && paymentPlan === 'deposit_50') {
@@ -630,7 +627,7 @@ export default function CheckoutPage() {
                   <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Plan</h2>
                   <p className="text-sm text-gray-600 mb-6">
                     {cartHasPreorder
-                      ? 'Your cart includes pre-order items. Pay in full now, or 50% now and the balance when goods arrive.'
+                      ? `Your cart includes pre-order items. Pay in full now, or ${DEPOSIT_PERCENT}% now and the balance when goods arrive.`
                       : 'Pay the full amount now for in-stock items available in Ghana.'}
                   </p>
                   <div className={`grid gap-4 mb-8 ${cartHasPreorder ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
@@ -668,7 +665,7 @@ export default function CheckoutPage() {
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-bold text-gray-900">50% Deposit</h3>
+                          <h3 className="text-lg font-bold text-gray-900">{depositPlanLabel()}</h3>
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                               effectivePlan === 'deposit_50' ? 'border-brand bg-brand' : 'border-gray-300'
@@ -677,7 +674,7 @@ export default function CheckoutPage() {
                             {effectivePlan === 'deposit_50' && <i className="ri-check-line text-white text-xs"></i>}
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">Pay half now, rest when goods arrive</p>
+                        <p className="text-sm text-gray-600 mb-2">Pay {DEPOSIT_PERCENT}% now, rest when goods arrive</p>
                         <p className="text-xl font-bold text-brand-accent">GH₵ {amountDueNow.toFixed(2)} now</p>
                         <p className="text-sm text-gray-500 mt-1">Balance: GH₵ {balanceDue.toFixed(2)}</p>
                       </button>

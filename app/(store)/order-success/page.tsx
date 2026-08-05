@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
+import { depositPlanLabel, isDepositPlan } from '@/lib/payments/plans';
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
@@ -150,7 +151,7 @@ function OrderSuccessContent() {
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               {order.payment_status === 'partially_paid'
-                ? 'Thanks — your 50% deposit is in. Pay the rest when your goods arrive, or online anytime.'
+                ? 'Thanks — your deposit is in. Pay the rest when your goods arrive, or online anytime.'
                 : "Thank you for your purchase. We're processing your order now."}
             </p>
 
@@ -173,7 +174,7 @@ function OrderSuccessContent() {
                 <div>
                   <p className="text-gray-600 mb-1">Plan</p>
                   <p className="font-semibold text-brand-ink">
-                    {order.payment_plan === 'deposit_50' ? '50% deposit' : 'Full payment'}
+                    {isDepositPlan(order.payment_plan) ? depositPlanLabel() : 'Full payment'}
                   </p>
                 </div>
                 <div>

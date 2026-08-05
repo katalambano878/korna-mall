@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHero from '@/components/PageHero';
+import { SITE_PHONE, SITE_PHONE_SECONDARY, whatsAppUrl } from '@/lib/seo';
 
 export default function FAQsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -225,13 +226,22 @@ export default function FAQsPage() {
               Contact Support
             </Link>
             <a
-              href="https://wa.me/233543832358"
+              href={whatsAppUrl(SITE_PHONE)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-brand text-white px-8 py-4 rounded-full font-medium hover:bg-brand-dark transition-colors whitespace-nowrap"
             >
               <i className="ri-whatsapp-line text-lg"></i>
-              Chat on WhatsApp
+              WhatsApp {SITE_PHONE}
+            </a>
+            <a
+              href={whatsAppUrl(SITE_PHONE_SECONDARY)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-brand-dark text-white px-8 py-4 rounded-full font-medium hover:bg-brand transition-colors whitespace-nowrap"
+            >
+              <i className="ri-whatsapp-line text-lg"></i>
+              WhatsApp {SITE_PHONE_SECONDARY}
             </a>
           </div>
         </div>
