@@ -162,6 +162,7 @@ export default function Footer() {
 
           <div className="border-t border-brand-accent/20 mt-20 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-[13px] text-white/55 font-light tracking-wide">
             <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+            <p>Powered by <a href="https://doctorbarns.com" target="_blank" rel="noopener" className="text-white/55 hover:underline">Doctor Barns Tech</a></p>
             <div className="flex gap-5 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
               <i className="ri-visa-line text-3xl"></i>
               <i className="ri-mastercard-line text-3xl"></i>
